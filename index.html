@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kameleon</title>
+    <title>Kameleon Studio</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -42,14 +42,16 @@
 </head>
 <body class="h-full flex flex-col overflow-hidden select-none bg-slate-950 text-slate-100 relative">
 
+    <!-- Global Drag and Drop Overlay -->
     <div id="globalDropOverlay" class="global-drag-overlay fixed inset-0 bg-indigo-950/80 border-4 border-dashed border-indigo-500 z-50 hidden flex-col items-center justify-center text-center transition-all duration-200 pointer-events-none">
         <div class="w-20 h-20 rounded-3xl bg-indigo-600/30 border border-indigo-400/50 flex items-center justify-center text-indigo-300 text-4xl mb-4 shadow-2xl animate-bounce">
             <i class="fa-solid fa-cloud-arrow-up"></i>
         </div>
         <h2 class="text-2xl font-extrabold text-white mb-2">Drop Image Files Here</h2>
-        <p class="text-sm text-indigo-200 max-w-md">Drag images to load background scenes or add to the batch queue.</p>
+        <p class="text-sm text-indigo-200 max-w-md">Drag images to load background scenes or add to the batch processing queue.</p>
     </div>
 
+    <!-- Application Navigation Header -->
     <header class="min-h-[4rem] border-b border-slate-800 bg-slate-950/90 backdrop-blur px-4 py-2 flex flex-wrap items-center justify-between z-20 flex-shrink-0 gap-3">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20 flex-shrink-0">
@@ -57,14 +59,14 @@
             </div>
             <div>
                 <h1 class="font-bold text-sm text-slate-100 flex items-center flex-wrap gap-2">
-                    Kameleon
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">v3.1 Mobile</span>
+                    Kameleon Studio
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">v3.2 Enhanced</span>
                 </h1>
-                <p class="text-[11px] text-slate-400">Auto-Contrast Legibility, Gradient Overlays & Multi-Camera Capture</p>
+                <p class="text-[11px] text-slate-400">Auto-Contrast Legibility, Gradient Extent & Multi-Camera Batch Studio</p>
             </div>
         </div>
 
-        <!-- Center Workspace Mode Switcher Tabs -->
+        <!-- Mode Switcher Tabs -->
         <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 shadow-inner overflow-x-auto max-w-full">
             <button id="tabLiveStudioBtn" onclick="switchViewMode('live')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 whitespace-nowrap">
                 <i class="fa-solid fa-palette text-xs"></i>
@@ -77,7 +79,7 @@
             </button>
         </div>
 
-        <!-- Right Header Action Controls -->
+        <!-- Header Controls -->
         <div class="flex items-center gap-3">
             <div class="hidden md:flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs gap-1">
                 <span class="text-[10px] text-slate-400 font-semibold px-2">Presets:</span>
@@ -97,7 +99,7 @@
 
         <div id="liveStudioView" class="w-full h-full flex flex-col lg:flex-row overflow-hidden relative">
 
-            <!-- MAIN WORKSPACE: Fixed 50vh top half on mobile, dynamic flex on desktop -->
+            <!-- MAIN WORKSPACE: Canvas Canvas & Visual Controls -->
             <main class="order-1 lg:order-2 w-full h-[50vh] lg:h-auto lg:flex-1 relative flex flex-col items-center justify-between p-2 sm:p-4 bg-slate-950/90 lg:bg-slate-950/70 overflow-hidden flex-shrink-0 z-20 border-b border-slate-800 lg:border-b-0 shadow-2xl lg:shadow-none">
                 <div class="w-full max-w-4xl bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2 mb-2 backdrop-blur flex items-center justify-between shadow-xl z-10 flex-wrap gap-2">
                     <div class="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
@@ -129,15 +131,6 @@
                 <!-- Canvas Container -->
                 <div id="canvasContainer" class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 studio-bg cursor-move max-w-full flex-1 flex items-center justify-center w-full p-2 touch-none">
                     <canvas id="studioCanvas" class="block rounded-xl max-w-full max-h-full object-contain shadow-2xl"></canvas>
-                    
-                    <!-- Dynamic On-Canvas Target Bounding Box Badge -->
-                    <div id="logoBoundingBox" class="absolute pointer-events-none border-2 border-indigo-500 rounded-lg transition-colors duration-150 flex items-center justify-center shadow-2xl" style="display:none;">
-                        <div id="bboxTag" class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-slate-700 text-[11px] px-3 py-1 rounded-full shadow-2xl whitespace-nowrap flex items-center gap-2 font-mono backdrop-blur">
-                            <span id="bboxIcon" class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                            <span id="bboxText" class="font-bold">Auto: Primary</span>
-                            <span id="bboxRatio" class="text-indigo-400 font-extrabold">(0.0:1)</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="mt-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 backdrop-blur text-[11px] text-slate-300 flex items-center flex-wrap justify-center gap-2 sm:gap-4 shadow-xl z-10">
@@ -147,13 +140,13 @@
                 </div>
             </main>
 
-            <!-- Mobile Scrollable Wrapper: Uses lg:contents to disappear logically on desktop -->
+            <!-- Scrollable Controls Sidebar Container -->
             <div class="order-2 lg:order-none w-full flex-1 flex flex-col overflow-y-auto lg:overflow-visible lg:contents custom-scrollbar z-10">
                 
-                <!-- Left Sidebar: Controls & Modes -->
+                <!-- Left Sidebar Controls -->
                 <aside class="lg:order-1 w-full lg:w-80 lg:border-r border-slate-800 bg-slate-950 flex flex-col lg:h-full flex-shrink-0 lg:overflow-y-auto custom-scrollbar">
                     
-                    <!-- Logo Variant Mode Selection -->
+                    <!-- Logo Mode Selection -->
                     <div class="p-4 border-b border-slate-800/80 bg-slate-900/40">
                         <div class="flex items-center justify-between mb-3">
                             <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Logo Selection Mode</h2>
@@ -208,18 +201,16 @@
                         </div>
                     </div>
 
-                    <!-- Environment & Uploads Panel -->
+                    <!-- Background & Camera Options -->
                     <div class="p-4 border-b border-slate-800/80 space-y-4">
                         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Background & Camera</h2>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
-                            <!-- Camera Capture Button -->
                             <button onclick="openCameraModal('single')" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition sm:col-span-2 lg:col-span-1">
                                 <i class="fa-solid fa-camera"></i>
                                 <span>Capture Background via Camera</span>
                             </button>
 
-                            <!-- Mobile-Friendly Solid Color Picker -->
                             <div class="relative flex flex-col gap-2 p-3 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/50 transition cursor-pointer overflow-hidden group">
                                 <div class="flex items-center justify-between z-10 pointer-events-none">
                                     <div class="flex items-center gap-2">
@@ -232,7 +223,6 @@
                                 <div id="bgColorSwatch" class="w-full h-8 rounded-lg shadow-inner pointer-events-none z-10 border border-white/10" style="background-color: #0f172a;"></div>
                             </div>
 
-                            <!-- Drop BG Image -->
                             <div id="bgDropArea" class="group relative flex flex-col items-center justify-center p-3 border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-900/50 hover:bg-indigo-950/20 transition-all text-center sm:col-span-2 lg:col-span-1 h-full">
                                 <i class="fa-solid fa-cloud-arrow-up text-slate-500 group-hover:text-indigo-400 text-base mb-1"></i>
                                 <span class="text-xs font-semibold text-slate-300">Upload BG Image</span>
@@ -241,14 +231,15 @@
                         </div>
                     </div>
 
+                    <!-- Enhanced Gradient & Contrast Adjusters -->
                     <div class="p-4 border-b border-slate-800/80 space-y-3 bg-slate-900/30">
                         <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                            <span>Background Contrast Adjuster</span>
+                            <span>Gradient & Contrast Engine</span>
                             <i class="fa-solid fa-circle-half-stroke text-indigo-400"></i>
                         </h2>
                         
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                            <!-- Gradient Overlay Controls -->
+                        <div class="grid grid-cols-1 gap-3">
+                            <!-- Gradient Controls -->
                             <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5">
                                 <div class="flex items-center justify-between relative z-30">
                                     <label for="gradientToggle" class="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
@@ -257,7 +248,7 @@
                                     <input type="checkbox" id="gradientToggle" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer">
                                 </div>
 
-                                <div id="gradientControls" class="space-y-2 hidden pt-1 relative z-30">
+                                <div id="gradientControls" class="space-y-2.5 hidden pt-1 relative z-30">
                                     <div>
                                         <label class="block text-[10px] font-semibold text-slate-400 mb-1">Gradient Direction</label>
                                         <select id="gradientDirection" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-200">
@@ -272,10 +263,18 @@
 
                                     <div>
                                         <div class="flex justify-between text-[10px] text-slate-400 mb-1">
-                                            <span>Gradient Opacity / Intensity</span>
-                                            <span id="gradientIntensityVal" class="text-indigo-400 font-mono">60%</span>
+                                            <span>Gradient Distance / Reach</span>
+                                            <span id="gradientDistanceVal" class="text-indigo-400 font-mono">60%</span>
                                         </div>
-                                        <input type="range" id="gradientIntensity" min="0" max="100" value="60" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                                        <input type="range" id="gradientDistance" min="10" max="100" value="60" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                            <span>Gradient Intensity / Opacity</span>
+                                            <span id="gradientIntensityVal" class="text-indigo-400 font-mono">75%</span>
+                                        </div>
+                                        <input type="range" id="gradientIntensity" min="0" max="100" value="75" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-2 pt-1">
@@ -285,13 +284,13 @@
                                         </div>
                                         <div>
                                             <span class="block text-[10px] text-slate-400 mb-1">End Color</span>
-                                            <input type="color" id="gradientEndColor" value="#000000" class="w-full h-7 bg-slate-950 border border-slate-700 rounded cursor-pointer p-0.5 relative z-40">
+                                            <input type="color" id="gradientEndColor" value="#0f172a" class="w-full h-7 bg-slate-950 border border-slate-700 rounded cursor-pointer p-0.5 relative z-40">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Tint Overlay Controls -->
+                            <!-- Tint Controls -->
                             <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5">
                                 <div class="flex items-center justify-between relative z-30">
                                     <label for="tintToggle" class="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
@@ -318,7 +317,7 @@
                         </div>
                     </div>
 
-                    <!-- Transform Controls -->
+                    <!-- Logo Position Snapping and Scale -->
                     <div class="p-4 space-y-3 pb-8">
                         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Transform & Placement</h2>
                         
@@ -338,7 +337,7 @@
                             <input type="range" id="rotateSlider" min="-180" max="180" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                         </div>
 
-                        <!-- Preset Positions Snap Grid -->
+                        <!-- Preset Snap Placement Buttons -->
                         <div class="pt-2 border-t border-slate-800/60">
                             <span class="text-[11px] text-slate-400 font-medium block mb-2">Preset Position Snapping</span>
                             <div class="grid grid-cols-3 gap-1.5">
@@ -356,7 +355,7 @@
                     </div>
                 </aside>
 
-                <!-- Right Sidebar: Scores -->
+                <!-- Right Sidebar Analytics -->
                 <aside class="lg:order-3 w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950 flex flex-col lg:h-full flex-shrink-0 p-4 space-y-4 lg:overflow-y-auto custom-scrollbar pb-12 lg:pb-4">
                     <div class="border-b border-slate-800/80 pb-3">
                         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -381,7 +380,6 @@
                                     <div id="swatchBox" class="w-4 h-4 rounded border border-white/20"></div>
                                     <span id="swatchHex" class="text-xs font-bold font-mono text-slate-200">#000000</span>
                                 </div>
-                                <div id="bgSamplePantone" class="text-[9px] text-slate-400 font-mono mt-0.5 truncate max-w-[100px]">PANTONE --</div>
                             </div>
                         </div>
 
@@ -390,7 +388,7 @@
                         </p>
                     </div>
 
-                    <!-- Variant Cards -->
+                    <!-- Variant Score Cards -->
                     <div class="space-y-2 border-b border-slate-800/80 pb-4 flex-1">
                         <div class="text-[11px] font-semibold text-slate-300">Variant Scores</div>
 
@@ -413,6 +411,7 @@
             </div>
         </div>
 
+        <!-- BATCH STUDIO TAB VIEW (TAB 2) -->
         <div id="batchStudioView" class="w-full h-full flex flex-col p-4 lg:p-6 bg-slate-950 overflow-y-auto custom-scrollbar hidden">
             
             <!-- Batch Header Action Bar -->
@@ -423,18 +422,16 @@
                         Batch Image Processing Queue
                     </h2>
                     <p class="text-xs text-slate-400 mt-0.5 max-w-lg">
-                        Process multiple mockups simultaneously. Apply global logo placements or gradient overlays to all images in the queue.
+                        Process multiple mockups simultaneously. Automatically detects busy backgrounds to apply contrasting monochrome logos or gradient/tint enhancements.
                     </p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                    <!-- Tab 2 Multi-Capture Camera Feature -->
                     <button onclick="openCameraModal('multi')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-purple-600/20 flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-camera-rotate"></i>
                         <span>Multi-Camera</span>
                     </button>
 
-                    <!-- Import Files -->
                     <label for="batchInput" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
                         <span>Import Images</span>
@@ -451,9 +448,10 @@
                 </div>
             </div>
 
+            <!-- Global Controls Row -->
             <div class="mb-6 grid grid-cols-1 xl:grid-cols-2 gap-4">
                 
-                <!-- FEATURE 2: Batch Logo Apply To All Snap Locations -->
+                <!-- Batch Snapping -->
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
@@ -487,7 +485,7 @@
                     </div>
                 </div>
 
-                <!-- FEATURE 3: Batch Gradient & Tint Adjustment Panel -->
+                <!-- Batch Gradient & Tint Controls Panel -->
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
@@ -496,6 +494,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <!-- Batch Gradient -->
                         <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-slate-200 flex items-center gap-1.5">
@@ -503,16 +502,25 @@
                                 </span>
                                 <input type="checkbox" id="batchGradientToggle" onchange="applyBatchOverlays()" class="rounded bg-slate-800 text-indigo-500 cursor-pointer">
                             </div>
-                            <div class="flex gap-2">
-                                <select id="batchGradientDirection" onchange="applyBatchOverlays()" class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] text-slate-300 p-1">
-                                    <option value="top-to-bottom">Top-to-Bottom</option>
-                                    <option value="bottom-to-top">Bottom-to-Top</option>
-                                    <option value="radial-center">Radial Center</option>
-                                </select>
-                                <input type="color" id="batchGradientColor" value="#000000" onchange="applyBatchOverlays()" class="w-7 h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                            <div class="space-y-1.5">
+                                <div class="flex gap-1.5">
+                                    <select id="batchGradientDirection" onchange="applyBatchOverlays()" class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] text-slate-300 p-1">
+                                        <option value="top-to-bottom">Top-to-Bottom</option>
+                                        <option value="bottom-to-top">Bottom-to-Top</option>
+                                        <option value="left-to-right">Left-to-Right</option>
+                                        <option value="radial-center">Radial Center</option>
+                                    </select>
+                                    <input type="color" id="batchGradientStartColor" value="#000000" onchange="applyBatchOverlays()" title="Start Color" class="w-7 h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5 flex-shrink-0">
+                                    <input type="color" id="batchGradientEndColor" value="#0f172a" onchange="applyBatchOverlays()" title="End Color" class="w-7 h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5 flex-shrink-0">
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                                    <span>Extent:</span>
+                                    <input type="range" id="batchGradientDistance" min="10" max="100" value="60" oninput="applyBatchOverlays()" class="w-full accent-indigo-500">
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Batch Tint -->
                         <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-slate-200 flex items-center gap-1.5">
@@ -521,7 +529,7 @@
                                 <input type="checkbox" id="batchTintToggle" onchange="applyBatchOverlays()" class="rounded bg-slate-800 text-purple-500 cursor-pointer">
                             </div>
                             <div class="flex gap-2 items-center">
-                                <input type="color" id="batchTintColor" value="#0f172a" onchange="applyBatchOverlays()" class="w-full h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                                <input type="color" id="batchTintColor" value="#0f172a" onchange="applyBatchOverlays()" class="w-12 h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
                                 <input type="range" id="batchTintOpacity" min="10" max="80" value="30" oninput="applyBatchOverlays()" class="w-full accent-purple-500">
                             </div>
                         </div>
@@ -529,6 +537,7 @@
                 </div>
             </div>
 
+            <!-- Dropzone inside Batch View -->
             <div id="batchDropZone" class="group border-2 border-dashed border-slate-800 hover:border-indigo-500/80 bg-slate-900/40 hover:bg-indigo-950/20 rounded-2xl p-6 mb-6 text-center transition cursor-pointer relative">
                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
                 <h3 class="text-xs font-bold text-slate-200">Drag & Drop Multiple Images Here</h3>
@@ -536,13 +545,15 @@
                 <input type="file" id="batchZoneInput" accept="image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
 
+            <!-- Batch Grid Canvas Display -->
             <div id="batchGridContainer" class="batch-grid">
-                <!-- Batch cards are dynamically injected here via JS -->
+                <!-- Cards dynamically injected -->
             </div>
         </div>
 
     </div>
 
+    <!-- Camera Capture Modal Dialog -->
     <div id="cameraModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex-col items-center justify-center p-4 transition-all">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden">
             
@@ -627,15 +638,8 @@
         <span id="toastMsg">Action completed</span>
     </div>
 
+    <!-- JAVASCRIPT LOGIC & CANVAS ENGINE -->
     <script>
-        const PANTONE_DATABASE = [
-            { code: "PANTONE 286 C", name: "Royal WSI Blue", hex: "#1E4488", r: 30, g: 68, b: 136 },
-            { code: "PANTONE 185 C", name: "Bright WSI Red", hex: "#E22B2B", r: 226, g: 43, b: 43 },
-            { code: "PANTONE Black C", name: "Rich Black", hex: "#111827", r: 17, g: 24, b: 39 },
-            { code: "PANTONE White", name: "Bright White", hex: "#FFFFFF", r: 255, g: 255, b: 255 }
-        ];
-
-        // Global State Store
         const state = {
             currentView: 'live',
             bgImage: null,
@@ -650,13 +654,15 @@
             rotation: 0,
             dropShadow: false,
             
-            // Enhancements
+            // Gradient Overlay Enhancements
             gradientEnabled: false,
             gradientDirection: 'top-to-bottom',
-            gradientIntensity: 60,
+            gradientDistance: 60,
+            gradientIntensity: 75,
             gradientStartColor: '#000000',
-            gradientEndColor: '#000000',
+            gradientEndColor: '#0f172a',
 
+            // Tint Overlay Enhancements
             tintEnabled: false,
             tintColor: '#0f172a',
             tintOpacity: 30,
@@ -669,7 +675,7 @@
             // Color data
             contrastScores: { primary: 1, black: 1, white: 1 },
 
-            // Batch Items Queue
+            // Batch Queue
             batchItems: [],
             activeBatchId: null,
 
@@ -682,7 +688,6 @@
 
         const canvas = document.getElementById('studioCanvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const boundingBox = document.getElementById('logoBoundingBox');
         const container = document.getElementById('canvasContainer');
 
         window.onload = function() {
@@ -736,9 +741,9 @@
                 item.scale = state.scale;
                 item.rotation = state.rotation;
                 item.selectedVariant = state.selectedVariant;
-                item.resolvedVariant = state.resolvedVariant;
                 item.gradientEnabled = state.gradientEnabled;
                 item.gradientDirection = state.gradientDirection;
+                item.gradientDistance = state.gradientDistance;
                 item.gradientStartColor = state.gradientStartColor;
                 item.gradientEndColor = state.gradientEndColor;
                 item.gradientIntensity = state.gradientIntensity;
@@ -746,8 +751,11 @@
                 item.tintColor = state.tintColor;
                 item.tintOpacity = state.tintOpacity;
                 
+                // Re-evaluate contrast variant for updated position
+                evaluateBatchItemContrast(item);
+
                 const badge = document.getElementById('autoSaveBadge');
-                if(badge) {
+                if (badge) {
                     badge.classList.remove('opacity-50');
                     setTimeout(() => badge.classList.add('opacity-50'), 600);
                 }
@@ -757,12 +765,11 @@
         function setVariantMode(mode) {
             state.selectedVariant = mode;
             
-            // Visual Update
             document.querySelectorAll('.variant-btn').forEach(btn => {
                 btn.classList.remove('border-indigo-500', 'bg-indigo-500/10');
                 btn.classList.add('border-slate-800', 'bg-slate-900/60');
                 const check = btn.querySelector('.variant-check');
-                if(check) {
+                if (check) {
                     check.classList.remove('text-indigo-400');
                     check.classList.add('text-transparent');
                 }
@@ -774,7 +781,7 @@
                 activeBtn.classList.remove('border-slate-800', 'bg-slate-900/60');
                 activeBtn.classList.add('border-indigo-500', 'bg-indigo-500/10');
                 const check = activeBtn.querySelector('.variant-check');
-                if(check) {
+                if (check) {
                     check.classList.remove('text-transparent');
                     check.classList.add('text-indigo-400');
                 }
@@ -791,15 +798,14 @@
             const bCtx = bgCanvas.getContext('2d');
 
             if (presetType === 'multi') {
-                // Bottom-right changed to Orange (#F97316) to ensure the Black Logo evaluates cleanly.
-                bCtx.fillStyle = '#F1F5F9'; bCtx.fillRect(0, 0, 600, 400); // Top Left
-                bCtx.fillStyle = '#0F172A'; bCtx.fillRect(600, 0, 600, 400); // Top Right
-                bCtx.fillStyle = '#C8102E'; bCtx.fillRect(0, 400, 600, 400); // Bottom Left
-                bCtx.fillStyle = '#F97316'; bCtx.fillRect(600, 400, 600, 400); // Bottom Right (Orange)
+                bCtx.fillStyle = '#F1F5F9'; bCtx.fillRect(0, 0, 600, 400); // Top Left White
+                bCtx.fillStyle = '#0F172A'; bCtx.fillRect(600, 0, 600, 400); // Top Right Dark
+                bCtx.fillStyle = '#C8102E'; bCtx.fillRect(0, 400, 600, 400); // Bottom Left Red
+                bCtx.fillStyle = '#F97316'; bCtx.fillRect(600, 400, 600, 400); // Bottom Right Orange
             } else if (presetType === 'busy') {
-                for(let x=0; x<1200; x+=60) {
-                    for(let y=0; y<800; y+=60) {
-                        bCtx.fillStyle = `hsl(${(x+y)%360}, 70%, 50%)`;
+                for (let x = 0; x < 1200; x += 60) {
+                    for (let y = 0; y < 800; y += 60) {
+                        bCtx.fillStyle = `hsl(${(x + y) % 360}, 70%, 50%)`;
                         bCtx.fillRect(x, y, 60, 60);
                     }
                 }
@@ -914,6 +920,46 @@
             imgW.src = canvasW.toDataURL();
         }
 
+        function drawGradientOverlayOnCanvas(targetCtx, width, height, opts) {
+            if (!opts.gradientEnabled) return;
+
+            targetCtx.save();
+            let grad;
+            const alpha = (opts.gradientIntensity !== undefined ? opts.gradientIntensity : 75) / 100;
+            const distanceFactor = Math.max(0.1, Math.min(1.0, (opts.gradientDistance !== undefined ? opts.gradientDistance : 60) / 100));
+
+            const startHex = opts.gradientStartColor || '#000000';
+            const endHex = opts.gradientEndColor || '#0f172a';
+
+            const dir = opts.gradientDirection || 'top-to-bottom';
+
+            if (dir === 'top-to-bottom') {
+                grad = targetCtx.createLinearGradient(0, 0, 0, height * distanceFactor);
+            } else if (dir === 'bottom-to-top') {
+                grad = targetCtx.createLinearGradient(0, height, 0, height * (1 - distanceFactor));
+            } else if (dir === 'left-to-right') {
+                grad = targetCtx.createLinearGradient(0, 0, width * distanceFactor, 0);
+            } else if (dir === 'right-to-left') {
+                grad = targetCtx.createLinearGradient(width, 0, width * (1 - distanceFactor), 0);
+            } else if (dir === 'radial-center') {
+                const maxR = (Math.max(width, height) / 2) * distanceFactor;
+                grad = targetCtx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, maxR);
+            } else { // radial-edges
+                const maxR = Math.max(width, height) / 2;
+                const minR = maxR * (1 - distanceFactor);
+                grad = targetCtx.createRadialGradient(width / 2, height / 2, minR, width / 2, height / 2, maxR);
+            }
+
+            // Start Color at specified alpha
+            grad.addColorStop(0, hexToRgba(startHex, alpha));
+            // End Color transitions smoothly across the gradient distance
+            grad.addColorStop(1, hexToRgba(endHex, alpha * 0.1));
+
+            targetCtx.fillStyle = grad;
+            targetCtx.fillRect(0, 0, width, height);
+            targetCtx.restore();
+        }
+
         function renderCanvas() {
             if (!state.bgImage || state.currentView !== 'live') return;
 
@@ -931,25 +977,7 @@
                 ctx.restore();
             }
 
-            if (state.gradientEnabled) {
-                ctx.save();
-                let grad;
-                const alpha = state.gradientIntensity / 100;
-
-                if (state.gradientDirection === 'top-to-bottom') { grad = ctx.createLinearGradient(0, 0, 0, canvas.height); }
-                else if (state.gradientDirection === 'bottom-to-top') { grad = ctx.createLinearGradient(0, canvas.height, 0, 0); }
-                else if (state.gradientDirection === 'left-to-right') { grad = ctx.createLinearGradient(0, 0, canvas.width, 0); }
-                else if (state.gradientDirection === 'right-to-left') { grad = ctx.createLinearGradient(canvas.width, 0, 0, 0); }
-                else if (state.gradientDirection === 'radial-center') { grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width/1.5); }
-                else { grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width/1.8, canvas.width/2, canvas.height/2, 10); }
-
-                grad.addColorStop(0, hexToRgba(state.gradientStartColor, alpha));
-                grad.addColorStop(1, hexToRgba(state.gradientEndColor, 0));
-
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.restore();
-            }
+            drawGradientOverlayOnCanvas(ctx, canvas.width, canvas.height, state);
 
             analyzeContextualContrast();
 
@@ -979,7 +1007,7 @@
 
         function hexToRgba(hex, alpha) {
             let c = hex.replace('#', '');
-            if (c.length === 3) c = c.split('').map(x => x+x).join('');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
             const num = parseInt(c, 16);
             return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
         }
@@ -997,30 +1025,55 @@
             return ((l1 + 0.05) / (l2 + 0.05)).toFixed(2);
         }
 
+        function evaluateBackgroundArea(ctxRef, imgW, imgH, logoX, logoY, scaleVal) {
+            const logoW = 300 * scaleVal;
+            const logoH = 165 * scaleVal;
+
+            const sampleX = Math.max(0, Math.floor(logoX - logoW / 2));
+            const sampleY = Math.max(0, Math.floor(logoY - logoH / 2));
+            const sampleW = Math.min(imgW - sampleX, Math.floor(logoW));
+            const sampleH = Math.min(imgH - sampleY, Math.floor(logoH));
+
+            if (sampleW <= 0 || sampleH <= 0) {
+                return { bgLum: 0.5, variance: 0, avgR: 0, avgG: 0, avgB: 0 };
+            }
+
+            const bgData = ctxRef.getImageData(sampleX, sampleY, sampleW, sampleH).data;
+            let totalR = 0, totalG = 0, totalB = 0, totalLum = 0, count = 0;
+            let lums = [];
+
+            for (let i = 0; i < bgData.length; i += 16) {
+                const r = bgData[i], g = bgData[i + 1], b = bgData[i + 2];
+                totalR += r; totalG += g; totalB += b;
+                const lum = getLuminance(r, g, b);
+                totalLum += lum;
+                lums.push(lum);
+                count++;
+            }
+            if (count === 0) return { bgLum: 0.5, variance: 0, avgR: 0, avgG: 0, avgB: 0 };
+
+            const avgLum = totalLum / count;
+            let varianceSum = 0;
+            for (let j = 0; j < lums.length; j++) {
+                varianceSum += Math.pow(lums[j] - avgLum, 2);
+            }
+            const stdDev = Math.sqrt(varianceSum / count);
+
+            return {
+                bgLum: avgLum,
+                variance: stdDev,
+                avgR: Math.round(totalR / count),
+                avgG: Math.round(totalG / count),
+                avgB: Math.round(totalB / count)
+            };
+        }
+
         function analyzeContextualContrast() {
             if (!state.bgImage || !state.primaryLogo) return;
 
-            const logoW = state.primaryLogo.width * state.scale;
-            const logoH = state.primaryLogo.height * state.scale;
+            const analysis = evaluateBackgroundArea(ctx, canvas.width, canvas.height, state.logoX, state.logoY, state.scale);
+            const bgLum = analysis.bgLum;
 
-            const sampleX = Math.max(0, Math.floor(state.logoX - logoW / 2));
-            const sampleY = Math.max(0, Math.floor(state.logoY - logoH / 2));
-            const sampleW = Math.min(canvas.width - sampleX, Math.floor(logoW));
-            const sampleH = Math.min(canvas.height - sampleY, Math.floor(logoH));
-
-            if (sampleW <= 0 || sampleH <= 0) return;
-
-            const bgData = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
-            let totalR = 0, totalG = 0, totalB = 0, totalLum = 0, count = 0;
-
-            for (let i = 0; i < bgData.length; i += 16) {
-                totalR += bgData[i]; totalG += bgData[i + 1]; totalB += bgData[i + 2];
-                totalLum += getLuminance(bgData[i], bgData[i + 1], bgData[i + 2]);
-                count++;
-            }
-            if (count === 0) return;
-
-            const bgLum = totalLum / count;
             const ratioPrimary = parseFloat(calculateContrastRatio(getLuminance(30, 68, 136), bgLum));
             const ratioBlack = parseFloat(calculateContrastRatio(0, bgLum));
             const ratioWhite = parseFloat(calculateContrastRatio(1, bgLum));
@@ -1028,14 +1081,15 @@
             state.contrastScores = { primary: ratioPrimary, black: ratioBlack, white: ratioWhite };
 
             if (state.selectedVariant === 'auto') {
-                // Increased Primary contrast ratio threshold to strictly adhere to WCAG (4.5:1).
-                // This ensures mid-tones trigger the Black or White variant properly.
-                if (bgLum > 0.3) {
-                    state.resolvedVariant = ratioPrimary >= 4.5 ? 'primary' : 'black';
+                // If background has high color complexity (variance > 0.18) or primary fails WCAG 4.5:1
+                if (analysis.variance > 0.18 || ratioPrimary < 4.5) {
+                    // Pick monochrome white or black with maximum contrast
+                    state.resolvedVariant = ratioWhite >= ratioBlack ? 'white' : 'black';
+                    state.autoReason = `Auto-selected ${state.resolvedVariant.toUpperCase()} due to high background color complexity (StdDev: ${analysis.variance.toFixed(2)}).`;
                 } else {
-                    state.resolvedVariant = ratioPrimary >= 4.5 ? 'primary' : 'white';
+                    state.resolvedVariant = 'primary';
+                    state.autoReason = `Auto-selected PRIMARY logo on uniform background (Contrast: ${ratioPrimary.toFixed(1)}:1).`;
                 }
-                state.autoReason = `Auto-selected ${state.resolvedVariant.toUpperCase()} based on background luminance (${bgLum.toFixed(2)}).`;
             } else {
                 state.resolvedVariant = state.selectedVariant;
                 state.autoReason = `Manual override: Forced ${state.selectedVariant.toUpperCase()} mode.`;
@@ -1046,10 +1100,10 @@
                 if (item) { item.resolvedVariant = state.resolvedVariant; }
             }
 
-            updateContrastAnalyticsUI();
+            updateContrastAnalyticsUI(analysis);
         }
 
-        function updateContrastAnalyticsUI() {
+        function updateContrastAnalyticsUI(analysis) {
             const activeRatio = state.contrastScores[state.resolvedVariant] || 1.0;
             document.getElementById('activeContrastRatio').innerText = `${activeRatio.toFixed(1)} : 1`;
             document.getElementById('autoReasonText').innerText = state.autoReason;
@@ -1057,6 +1111,60 @@
             document.getElementById('badgePrimary').innerText = `${state.contrastScores.primary.toFixed(1)} : 1`;
             document.getElementById('badgeBlack').innerText = `${state.contrastScores.black.toFixed(1)} : 1`;
             document.getElementById('badgeWhite').innerText = `${state.contrastScores.white.toFixed(1)} : 1`;
+
+            if (analysis) {
+                const hex = "#" + ((1 << 24) + (analysis.avgR << 16) + (analysis.avgG << 8) + analysis.avgB).toString(16).slice(1).toUpperCase();
+                document.getElementById('swatchHex').innerText = hex;
+                document.getElementById('swatchBox').style.backgroundColor = hex;
+            }
+        }
+
+        function evaluateBatchItemContrast(item) {
+            if (!item || !item.bgImage) return;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = item.bgImage.width;
+            tempCanvas.height = item.bgImage.height;
+            const tCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+            tCtx.drawImage(item.bgImage, 0, 0);
+
+            if (item.tintEnabled) {
+                tCtx.save();
+                tCtx.fillStyle = item.tintColor || '#0f172a';
+                tCtx.globalAlpha = (item.tintOpacity || 30) / 100;
+                tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tCtx.restore();
+            }
+
+            drawGradientOverlayOnCanvas(tCtx, tempCanvas.width, tempCanvas.height, item);
+
+            const analysis = evaluateBackgroundArea(tCtx, tempCanvas.width, tempCanvas.height, item.logoX, item.logoY, item.scale);
+            const bgLum = analysis.bgLum;
+
+            const ratioPrimary = parseFloat(calculateContrastRatio(getLuminance(30, 68, 136), bgLum));
+            const ratioBlack = parseFloat(calculateContrastRatio(0, bgLum));
+            const ratioWhite = parseFloat(calculateContrastRatio(1, bgLum));
+
+            if (!item.selectedVariant || item.selectedVariant === 'auto') {
+                // If background is busy or high color variance, auto-apply contrast tint/gradient if not already active
+                if (analysis.variance > 0.20 && !item.gradientEnabled && !item.tintEnabled) {
+                    item.gradientEnabled = true;
+                    item.gradientDirection = 'bottom-to-top';
+                    item.gradientStartColor = '#000000';
+                    item.gradientEndColor = '#0f172a';
+                    item.gradientDistance = 60;
+                    item.gradientIntensity = 75;
+                }
+
+                // Pick contrasting monochrome logo on busy backgrounds
+                if (analysis.variance > 0.16 || ratioPrimary < 4.5) {
+                    item.resolvedVariant = ratioWhite >= ratioBlack ? 'white' : 'black';
+                } else {
+                    item.resolvedVariant = 'primary';
+                }
+            } else {
+                item.resolvedVariant = item.selectedVariant;
+            }
         }
 
         function batchApplyLogoPosition(pos) {
@@ -1078,6 +1186,7 @@
                     case 'bottom-left': item.logoX = w * 0.18; item.logoY = h * 0.82; break;
                     case 'bottom-right': item.logoX = w * 0.82; item.logoY = h * 0.82; break;
                 }
+                evaluateBatchItemContrast(item);
             });
 
             renderBatchGrid();
@@ -1087,7 +1196,9 @@
         function applyBatchOverlays() {
             const gradEnabled = document.getElementById('batchGradientToggle').checked;
             const gradDirection = document.getElementById('batchGradientDirection').value;
-            const gradColor = document.getElementById('batchGradientColor').value;
+            const gradStartColor = document.getElementById('batchGradientStartColor').value;
+            const gradEndColor = document.getElementById('batchGradientEndColor').value;
+            const gradDistance = parseInt(document.getElementById('batchGradientDistance').value, 10);
 
             const tintEnabled = document.getElementById('batchTintToggle').checked;
             const tintColor = document.getElementById('batchTintColor').value;
@@ -1096,15 +1207,20 @@
             state.batchItems.forEach(item => {
                 item.gradientEnabled = gradEnabled;
                 item.gradientDirection = gradDirection;
-                item.gradientStartColor = gradColor;
+                item.gradientStartColor = gradStartColor;
+                item.gradientEndColor = gradEndColor;
+                item.gradientDistance = gradDistance;
+                item.gradientIntensity = 75;
                 
                 item.tintEnabled = tintEnabled;
                 item.tintColor = tintColor;
                 item.tintOpacity = tintOpacity;
+
+                evaluateBatchItemContrast(item);
             });
 
             renderBatchGrid();
-            showToast('Applied global adjustments to all queue items.');
+            showToast('Applied global gradient and color adjustments.');
         }
 
         function renderBatchGrid() {
@@ -1123,6 +1239,8 @@
             }
 
             container.innerHTML = state.batchItems.map(item => {
+                evaluateBatchItemContrast(item);
+
                 const thumbCanvas = document.createElement('canvas');
                 thumbCanvas.width = item.bgImage.width;
                 thumbCanvas.height = item.bgImage.height;
@@ -1138,15 +1256,7 @@
                     tCtx.restore();
                 }
 
-                if (item.gradientEnabled) {
-                    tCtx.save();
-                    let grad = tCtx.createLinearGradient(0, 0, 0, thumbCanvas.height);
-                    grad.addColorStop(0, hexToRgba(item.gradientStartColor || '#000000', 0.6));
-                    grad.addColorStop(1, 'rgba(0,0,0,0)');
-                    tCtx.fillStyle = grad;
-                    tCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
-                    tCtx.restore();
-                }
+                drawGradientOverlayOnCanvas(tCtx, thumbCanvas.width, thumbCanvas.height, item);
 
                 const activeLogo = (item.resolvedVariant === 'black' ? state.blackLogo : (item.resolvedVariant === 'white' ? state.whiteLogo : state.primaryLogo));
                 if (activeLogo) {
@@ -1166,10 +1276,11 @@
                             <img src="${thumbUrl}" class="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-300" alt="${item.name}" />
                             
                             <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-                                <span class="bg-slate-950/80 backdrop-blur-md text-[10px] font-bold font-mono text-indigo-300 px-2.5 py-0.5 rounded-full border border-slate-700/80 shadow-md">
+                                <span class="bg-slate-950/80 backdrop-blur-md text-[10px] font-bold font-mono text-indigo-300 px-2.5 py-0.5 rounded-full border border-slate-700/80 shadow-md flex items-center gap-1">
+                                    <i class="fa-solid fa-tag text-[9px] text-indigo-400"></i>
                                     ${(item.resolvedVariant || 'auto').toUpperCase()}
                                 </span>
-                                ${item.gradientEnabled ? '<span class="bg-purple-950/80 backdrop-blur-md text-[10px] font-bold text-purple-300 px-2 py-0.5 rounded-full border border-purple-700/80 shadow-md">EFFECTS</span>' : ''}
+                                ${item.gradientEnabled ? '<span class="bg-purple-950/80 backdrop-blur-md text-[10px] font-bold text-purple-300 px-2 py-0.5 rounded-full border border-purple-700/80 shadow-md">GRADIENT</span>' : ''}
                             </div>
                         </div>
 
@@ -1207,13 +1318,16 @@
             
             state.gradientEnabled = !!item.gradientEnabled;
             state.gradientDirection = item.gradientDirection || 'top-to-bottom';
+            state.gradientDistance = item.gradientDistance !== undefined ? item.gradientDistance : 60;
             state.gradientStartColor = item.gradientStartColor || '#000000';
-            state.gradientEndColor = item.gradientEndColor || '#000000';
-            state.gradientIntensity = item.gradientIntensity || 60;
+            state.gradientEndColor = item.gradientEndColor || '#0f172a';
+            state.gradientIntensity = item.gradientIntensity !== undefined ? item.gradientIntensity : 75;
             
             document.getElementById('gradientToggle').checked = state.gradientEnabled;
             document.getElementById('gradientControls').classList.toggle('hidden', !state.gradientEnabled);
             document.getElementById('gradientDirection').value = state.gradientDirection;
+            document.getElementById('gradientDistance').value = state.gradientDistance;
+            document.getElementById('gradientDistanceVal').innerText = `${state.gradientDistance}%`;
             document.getElementById('gradientStartColor').value = state.gradientStartColor;
             document.getElementById('gradientEndColor').value = state.gradientEndColor;
             document.getElementById('gradientIntensity').value = state.gradientIntensity;
@@ -1306,12 +1420,12 @@
             });
 
             container.addEventListener('touchstart', (e) => {
-                if(e.touches.length === 1) {
+                if (e.touches.length === 1) {
                     isDragging = true;
                     startX = e.touches[0].clientX; startY = e.touches[0].clientY;
                     initX = state.logoX; initY = state.logoY;
                 }
-            }, {passive: false});
+            }, { passive: false });
 
             container.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
@@ -1321,7 +1435,7 @@
                 state.logoX = initX + (e.touches[0].clientX - startX) * scaleX;
                 state.logoY = initY + (e.touches[0].clientY - startY) * scaleY;
                 renderCanvas();
-            }, {passive: false});
+            }, { passive: false });
 
             container.addEventListener('touchend', () => { 
                 if (isDragging) { isDragging = false; saveActiveBatchItem(); }
@@ -1338,7 +1452,6 @@
                 renderCanvas();
                 saveActiveBatchItem();
             }, { passive: false });
-
 
             document.getElementById('scaleSlider').addEventListener('input', (e) => {
                 state.scale = e.target.value / 100;
@@ -1367,11 +1480,18 @@
                 renderCanvas(); saveActiveBatchItem();
             });
             document.getElementById('gradientDirection').addEventListener('change', (e) => { state.gradientDirection = e.target.value; renderCanvas(); saveActiveBatchItem(); });
+            document.getElementById('gradientDistance').addEventListener('input', (e) => {
+                state.gradientDistance = parseInt(e.target.value, 10);
+                document.getElementById('gradientDistanceVal').innerText = `${e.target.value}%`;
+                renderCanvas(); saveActiveBatchItem();
+            });
             document.getElementById('gradientIntensity').addEventListener('input', (e) => {
                 state.gradientIntensity = parseInt(e.target.value, 10);
                 document.getElementById('gradientIntensityVal').innerText = `${e.target.value}%`;
                 renderCanvas(); saveActiveBatchItem();
             });
+            document.getElementById('gradientStartColor').addEventListener('input', (e) => { state.gradientStartColor = e.target.value; renderCanvas(); saveActiveBatchItem(); });
+            document.getElementById('gradientEndColor').addEventListener('input', (e) => { state.gradientEndColor = e.target.value; renderCanvas(); saveActiveBatchItem(); });
 
             document.getElementById('tintToggle').addEventListener('change', (e) => {
                 state.tintEnabled = e.target.checked;
@@ -1492,7 +1612,7 @@
             grad.addColorStop(0, '#0f172a'); grad.addColorStop(0.5, '#4338ca'); grad.addColorStop(1, '#db2777');
             sCtx.fillStyle = grad; sCtx.fillRect(0, 0, 900, 1200);
             sCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            for(let i = 0; i < 25; i++) { sCtx.beginPath(); sCtx.arc(Math.random() * 900, Math.random() * 1200, Math.random() * 90 + 20, 0, Math.PI * 2); sCtx.fill(); }
+            for (let i = 0; i < 25; i++) { sCtx.beginPath(); sCtx.arc(Math.random() * 900, Math.random() * 1200, Math.random() * 90 + 20, 0, Math.PI * 2); sCtx.fill(); }
 
             sCtx.fillStyle = '#ffffff'; sCtx.font = 'bold 38px Inter, sans-serif'; sCtx.textAlign = 'center';
             sCtx.fillText('Camera Capture Sample #' + (state.capturedPhotosList.length + 1), 450, 580);
@@ -1530,7 +1650,7 @@
             document.getElementById('capturedThumbnails').innerHTML = state.capturedPhotosList.map((url, idx) => `
                 <div class="relative w-14 h-14 rounded-lg overflow-hidden border border-indigo-500/50 flex-shrink-0 group">
                     <img src="${url}" class="w-full h-full object-cover" />
-                    <span class="absolute bottom-0 right-0 bg-slate-950/80 text-[9px] text-indigo-300 font-mono px-1">#${idx+1}</span>
+                    <span class="absolute bottom-0 right-0 bg-slate-950/80 text-[9px] text-indigo-300 font-mono px-1">#${idx + 1}</span>
                 </div>
             `).join('');
         }
@@ -1541,12 +1661,14 @@
             state.capturedPhotosList.forEach((dataUrl, idx) => {
                 const img = new Image();
                 img.onload = () => {
-                    state.batchItems.push({
+                    const newItem = {
                         id: 'cam_' + Date.now() + '_' + idx, name: `Camera Capture #${idx + 1}`, bgImage: img,
                         logoX: img.width / 2, logoY: img.height / 2, scale: 0.5, rotation: 0,
                         selectedVariant: 'auto', resolvedVariant: 'primary',
                         gradientEnabled: false, tintEnabled: false
-                    });
+                    };
+                    evaluateBatchItemContrast(newItem);
+                    state.batchItems.push(newItem);
                     loaded++;
                     if (loaded === state.capturedPhotosList.length) { renderBatchGrid(); closeCameraModal(); showToast(`Added ${loaded} photo(s) to Batch Queue!`); }
                 };
@@ -1561,12 +1683,14 @@
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        state.batchItems.push({
+                        const newItem = {
                             id: 'file_' + Date.now() + '_' + idx, name: file.name, bgImage: img,
                             logoX: img.width / 2, logoY: img.height / 2, scale: 0.5, rotation: 0,
                             selectedVariant: 'auto', resolvedVariant: 'primary',
                             gradientEnabled: false, tintEnabled: false
-                        });
+                        };
+                        evaluateBatchItemContrast(newItem);
+                        state.batchItems.push(newItem);
                         loaded++;
                         if (loaded === files.length) { renderBatchGrid(); showToast(`Added ${loaded} file(s) to queue`); }
                     };
@@ -1590,6 +1714,52 @@
         function exportCurrentComposite() {
             const link = document.createElement('a'); link.download = 'brand-logo-composite.png';
             link.href = canvas.toDataURL('image/png'); link.click(); showToast('Canvas exported successfully');
+        }
+
+        function exportAllBatchItems() {
+            if (state.batchItems.length === 0) {
+                showToast('Batch queue is empty');
+                return;
+            }
+
+            state.batchItems.forEach((item, index) => {
+                setTimeout(() => {
+                    const exportCanvas = document.createElement('canvas');
+                    exportCanvas.width = item.bgImage.width;
+                    exportCanvas.height = item.bgImage.height;
+                    const eCtx = exportCanvas.getContext('2d');
+
+                    eCtx.drawImage(item.bgImage, 0, 0);
+
+                    if (item.tintEnabled) {
+                        eCtx.save();
+                        eCtx.fillStyle = item.tintColor || '#0f172a';
+                        eCtx.globalAlpha = (item.tintOpacity || 30) / 100;
+                        eCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                        eCtx.restore();
+                    }
+
+                    drawGradientOverlayOnCanvas(eCtx, exportCanvas.width, exportCanvas.height, item);
+
+                    const activeLogo = (item.resolvedVariant === 'black' ? state.blackLogo : (item.resolvedVariant === 'white' ? state.whiteLogo : state.primaryLogo));
+                    if (activeLogo) {
+                        eCtx.save();
+                        eCtx.translate(item.logoX, item.logoY);
+                        eCtx.rotate((item.rotation * Math.PI) / 180);
+                        const lw = activeLogo.width * item.scale;
+                        const lh = activeLogo.height * item.scale;
+                        eCtx.drawImage(activeLogo, -lw / 2, -lh / 2, lw, lh);
+                        eCtx.restore();
+                    }
+
+                    const link = document.createElement('a');
+                    link.download = `kameleon_batch_${index + 1}_${item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+                    link.href = exportCanvas.toDataURL('image/png');
+                    link.click();
+                }, index * 250);
+            });
+
+            showToast(`Exporting ${state.batchItems.length} composite image(s)...`);
         }
 
         function showToast(msg) {
