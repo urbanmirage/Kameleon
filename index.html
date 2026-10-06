@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kameleon</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .studio-bg {
+            background-color: #030712;
+            background-image: radial-gradient(circle at center, rgba(30, 41, 59, 0.3) 0%, rgba(3, 7, 18, 0.95) 100%);
+        }
+        .batch-grid {
+            column-count: 1;
+            column-gap: 1.25rem;
+        }
+        @media (min-width: 640px) { .batch-grid { column-count: 2; } }
+        @media (min-width: 1024px) { .batch-grid { column-count: 3; } }
+        @media (min-width: 1280px) { .batch-grid { column-count: 4; } }
+
+        .batch-card {
+            break-inside: avoid;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .global-drag-overlay {
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none bg-slate-950 text-slate-100 relative">
+
+    <div id="globalDropOverlay" class="global-drag-overlay fixed inset-0 bg-indigo-950/80 border-4 border-dashed border-indigo-500 z-50 hidden flex-col items-center justify-center text-center transition-all duration-200 pointer-events-none">
+        <div class="w-20 h-20 rounded-3xl bg-indigo-600/30 border border-indigo-400/50 flex items-center justify-center text-indigo-300 text-4xl mb-4 shadow-2xl animate-bounce">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <h2 class="text-2xl font-extrabold text-white mb-2">Drop Image Files Here</h2>
+        <p class="text-sm text-indigo-200 max-w-md">Drag images to load background scenes or add to the batch queue.</p>
+    </div>
+
+    <header class="min-h-[4rem] border-b border-slate-800 bg-slate-950/90 backdrop-blur px-4 py-2 flex flex-wrap items-center justify-between z-20 flex-shrink-0 gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20 flex-shrink-0">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm text-slate-100 flex items-center flex-wrap gap-2">
+                    Kameleon
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">v3.0 Pro</span>
+                </h1>
+                <p class="text-[11px] text-slate-400">Auto-Contrast Legibility, Gradient Overlays & Multi-Camera Capture</p>
+            </div>
+        </div>
+
+        <!-- Center Workspace Mode Switcher Tabs -->
+        <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 shadow-inner overflow-x-auto max-w-full">
+            <button id="tabLiveStudioBtn" onclick="switchViewMode('live')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 whitespace-nowrap">
+                <i class="fa-solid fa-palette text-xs"></i>
+                <span>Live Studio (Tab 1)</span>
+            </button>
+            <button id="tabBatchStudioBtn" onclick="switchViewMode('batch')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-layer-group text-xs"></i>
+                <span>Batch Studio (Tab 2)</span>
+                <span id="batchQueueBadge" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] font-mono text-indigo-300 border border-slate-700">0</span>
+            </button>
+        </div>
+
+        <!-- Right Header Action Controls -->
+        <div class="flex items-center gap-3">
+            <div class="hidden md:flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs gap-1">
+                <span class="text-[10px] text-slate-400 font-semibold px-2">Presets:</span>
+                <button onclick="loadPresetBackground('multi')" class="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition">4-Zone Test</button>
+                <button onclick="loadPresetBackground('busy')" class="px-2.5 py-1 rounded-md hover:bg-slate-800 text-slate-300 font-medium transition">Busy Photo</button>
+                <button onclick="loadPresetBackground('gradient')" class="px-2.5 py-1 rounded-md hover:bg-slate-800 text-slate-300 font-medium transition">Gradient</button>
+            </div>
+
+            <button id="exportBtn" onclick="exportCurrentComposite()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Export Canvas</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <div id="liveStudioView" class="w-full h-full flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative">
+
+            <!-- Left Sidebar: Controls & Modes -->
+            <aside class="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-950 flex flex-col lg:h-full z-10 flex-shrink-0">
+                
+                <!-- Logo Variant Mode Selection -->
+                <div class="p-4 border-b border-slate-800/80 bg-slate-900/40">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Logo Selection Mode</h2>
+                        <span id="autoIndicator" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold animate-pulse">
+                            Active
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                        <button id="variantAuto" onclick="setVariantMode('auto')" class="variant-btn p-2.5 rounded-xl border border-indigo-500 bg-indigo-500/10 text-indigo-300 text-left flex items-center justify-between transition shadow-md shadow-indigo-500/10">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xs">
+                                    <i class="fa-solid fa-robot"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold">Auto-Select Best</div>
+                                    <div class="text-[10px] text-slate-400 hidden lg:block">Switches dynamically on bg</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-xs text-indigo-400 variant-check"></i>
+                        </button>
+
+                        <button id="variantPrimary" onclick="setVariantMode('primary')" class="variant-btn p-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 text-left flex items-center justify-between transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-blue-600 via-red-500 to-indigo-600 flex-shrink-0"></span>
+                                <div>
+                                    <div class="text-xs font-semibold">Force Primary</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-xs text-transparent variant-check"></i>
+                        </button>
+
+                        <button id="variantBlack" onclick="setVariantMode('black')" class="variant-btn p-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 text-left flex items-center justify-between transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3.5 h-3.5 rounded-full bg-black border border-slate-700 flex-shrink-0"></span>
+                                <div>
+                                    <div class="text-xs font-semibold">Force Mono Black</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-xs text-transparent variant-check"></i>
+                        </button>
+
+                        <button id="variantWhite" onclick="setVariantMode('white')" class="variant-btn p-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 text-left flex items-center justify-between transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3.5 h-3.5 rounded-full bg-white flex-shrink-0"></span>
+                                <div>
+                                    <div class="text-xs font-semibold">Force Mono White</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-xs text-transparent variant-check"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Environment & Uploads Panel -->
+                <div class="p-4 border-b border-slate-800/80 space-y-4">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Background & Camera</h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                        <!-- Camera Capture Button (Tab 1 Feature) -->
+                        <button onclick="openCameraModal('single')" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition sm:col-span-2 lg:col-span-1">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Capture Background via Camera</span>
+                        </button>
+
+                        <!-- Solid Color Picker -->
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/50 transition">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-palette text-slate-400 text-xs w-4 text-center"></i>
+                                <span class="text-xs text-slate-300 font-medium">Solid Background</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="bgColorHexDisplay" class="text-[10px] font-mono text-slate-400 uppercase hidden lg:inline-block">#0F172A</span>
+                                <input type="color" id="bgColorPicker" value="#0f172a" class="w-6 h-6 rounded border-0 bg-transparent cursor-pointer" title="Pick Background Color" />
+                            </div>
+                        </div>
+
+                        <!-- Drop BG Image -->
+                        <div id="bgDropArea" class="group relative flex flex-col items-center justify-center p-3 border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-900/50 hover:bg-indigo-950/20 transition-all text-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-slate-500 group-hover:text-indigo-400 text-base mb-1"></i>
+                            <span class="text-xs font-semibold text-slate-300">Upload BG Image</span>
+                            <input type="file" id="bgInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                    </div>
+
+                    <!-- Primary Logo Upload -->
+                    <div class="pt-2 border-t border-slate-800/60">
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5 flex justify-between">
+                            <span>Primary Logo Asset</span>
+                            <span id="logoStatus" class="text-[10px] text-emerald-400 font-normal">Loaded</span>
+                        </label>
+                        <div id="logoDropArea" class="group relative flex flex-col items-center justify-center p-2.5 border border-dashed border-slate-800 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-900/50 hover:bg-indigo-950/20 transition text-center">
+                            <i class="fa-solid fa-shapes text-slate-500 group-hover:text-indigo-400 text-sm mb-1"></i>
+                            <span class="text-xs font-medium text-slate-300">Upload Custom Logo</span>
+                            <input type="file" id="logoInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-b border-slate-800/80 space-y-3 bg-slate-900/30">
+                    <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                        <span>Background Contrast Adjuster</span>
+                        <i class="fa-solid fa-circle-half-stroke text-indigo-400"></i>
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                        <!-- Gradient Overlay Controls -->
+                        <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <label for="gradientToggle" class="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
+                                    <i class="fa-solid fa-square-half-stroke text-indigo-400"></i> Gradient Overlay
+                                </label>
+                                <input type="checkbox" id="gradientToggle" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer">
+                            </div>
+
+                            <div id="gradientControls" class="space-y-2 hidden pt-1">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 mb-1">Gradient Direction</label>
+                                    <select id="gradientDirection" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-200">
+                                        <option value="top-to-bottom">Top to Bottom</option>
+                                        <option value="bottom-to-top">Bottom to Top</option>
+                                        <option value="left-to-right">Left to Right</option>
+                                        <option value="right-to-left">Right to Left</option>
+                                        <option value="radial-center">Radial Center</option>
+                                        <option value="radial-edges">Radial Edges</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                        <span>Gradient Opacity / Intensity</span>
+                                        <span id="gradientIntensityVal" class="text-indigo-400 font-mono">60%</span>
+                                    </div>
+                                    <input type="range" id="gradientIntensity" min="0" max="100" value="60" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 pt-1">
+                                    <div>
+                                        <span class="block text-[10px] text-slate-400 mb-1">Start Color</span>
+                                        <input type="color" id="gradientStartColor" value="#000000" class="w-full h-7 bg-slate-950 border border-slate-700 rounded cursor-pointer p-0.5">
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] text-slate-400 mb-1">End Color</span>
+                                        <input type="color" id="gradientEndColor" value="#000000" class="w-full h-7 bg-slate-950 border border-slate-700 rounded cursor-pointer p-0.5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tint Overlay Controls -->
+                        <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <label for="tintToggle" class="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
+                                    <i class="fa-solid fa-brush text-purple-400"></i> Tint Overlay Color
+                                </label>
+                                <input type="checkbox" id="tintToggle" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer">
+                            </div>
+
+                            <div id="tintControls" class="space-y-2 hidden pt-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-semibold text-slate-400">Tint Color Picker</span>
+                                    <input type="color" id="tintColor" value="#0f172a" class="w-8 h-6 bg-slate-950 border border-slate-700 rounded cursor-pointer p-0.5">
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                        <span>Tint Opacity</span>
+                                        <span id="tintOpacityVal" class="text-purple-400 font-mono">30%</span>
+                                    </div>
+                                    <input type="range" id="tintOpacity" min="0" max="90" value="30" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transform Controls -->
+                <div class="p-4 space-y-3 pb-8">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Transform & Placement</h2>
+                    
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Logo Scale</span>
+                            <span id="scaleValue" class="text-indigo-400 font-mono">50%</span>
+                        </div>
+                        <input type="range" id="scaleSlider" min="15" max="200" value="50" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Rotation Angle</span>
+                            <span id="rotateValue" class="text-indigo-400 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="rotateSlider" min="-180" max="180" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+
+                    <div class="pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="dropShadowToggle" class="rounded bg-slate-800 border-slate-700 text-indigo-500">
+                            <span>Drop Shadow Legibility Aid</span>
+                        </label>
+                    </div>
+
+                    <!-- Preset Positions Snap Grid -->
+                    <div class="pt-2 border-t border-slate-800/60">
+                        <span class="text-[11px] text-slate-400 font-medium block mb-2">Preset Position Snapping</span>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="snapLogo('top-left')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Top Left</button>
+                            <button onclick="snapLogo('top-center')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Top Center</button>
+                            <button onclick="snapLogo('top-right')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Top Right</button>
+                            <button onclick="snapLogo('center-left')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Center Left</button>
+                            <button onclick="snapLogo('center')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Center</button>
+                            <button onclick="snapLogo('center-right')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Center Right</button>
+                            <button onclick="snapLogo('bottom-left')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Bottom Left</button>
+                            <button onclick="snapLogo('bottom-center')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Bottom Center</button>
+                            <button onclick="snapLogo('bottom-right')" class="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-[10px] text-slate-300 rounded">Bottom Right</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-1 relative flex flex-col items-center justify-between p-4 bg-slate-950/70 overflow-hidden min-h-[60vh] lg:min-h-0">
+                <div class="w-full max-w-4xl bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2 mb-2 backdrop-blur flex items-center justify-between shadow-xl z-10 flex-wrap gap-2">
+                    <div class="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                        <button onclick="exitStudioMode()" title="Exit Studio / Back to Batch Queue" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 border border-slate-700 flex-shrink-0">
+                            <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Exit Studio</span>
+                        </button>
+                        <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+                        <span id="editingItemLabel" class="text-xs text-slate-300 font-medium truncate">
+                            Active Image Workspace
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div id="autoSaveBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold transition-all duration-300 opacity-50">
+                            <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                            <span id="autoSaveText" class="hidden sm:inline">Auto-Saved</span>
+                        </div>
+
+                        <button onclick="cancelStudioChanges()" title="Revert changes" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-xmark"></i> <span class="hidden sm:inline">Revert</span>
+                        </button>
+
+                        <button id="resetViewBtn" onclick="resetLogoPosition()" title="Reset Logo Position" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">Reset</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Container -->
+                <div id="canvasContainer" class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 studio-bg cursor-move max-w-full flex-1 flex items-center justify-center w-full p-2 touch-none">
+                    <canvas id="studioCanvas" class="block rounded-xl max-w-full max-h-full object-contain shadow-2xl"></canvas>
+                    
+                    <!-- Dynamic On-Canvas Target Bounding Box Badge -->
+                    <div id="logoBoundingBox" class="absolute pointer-events-none border-2 border-indigo-500 rounded-lg transition-colors duration-150 flex items-center justify-center shadow-2xl" style="display:none;">
+                        <div id="bboxTag" class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-slate-700 text-[11px] px-3 py-1 rounded-full shadow-2xl whitespace-nowrap flex items-center gap-2 font-mono backdrop-blur">
+                            <span id="bboxIcon" class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                            <span id="bboxText" class="font-bold">Auto: Primary</span>
+                            <span id="bboxRatio" class="text-indigo-400 font-extrabold">(0.0:1)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 backdrop-blur text-[11px] text-slate-300 flex items-center flex-wrap justify-center gap-2 sm:gap-4 shadow-xl z-10">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-up-down-left-right text-indigo-400"></i> Drag logo anywhere</span>
+                    <span class="w-px h-3 bg-slate-800 hidden sm:block"></span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-scroll text-indigo-400"></i> Scroll to scale</span>
+                </div>
+            </main>
+
+            <aside class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950 flex flex-col lg:h-full z-10 flex-shrink-0 p-4 space-y-4">
+                <div class="border-b border-slate-800/80 pb-3">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span>Legibility Score</span>
+                        <span id="activeVariantBadge" class="normal-case text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">
+                            Primary Logo
+                        </span>
+                    </h2>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium uppercase">Contrast Score</div>
+                            <div id="activeContrastRatio" class="text-2xl font-black text-white font-mono my-0.5">-- : 1</div>
+                            <div id="wcagBadge" class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <i class="fa-solid fa-circle-check"></i> WCAG Pass
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-400 font-medium">Local BG Color</div>
+                            <div id="bgSampleSwatch" class="mt-1 flex items-center justify-end gap-1.5">
+                                <div id="swatchBox" class="w-4 h-4 rounded border border-white/20"></div>
+                                <span id="swatchHex" class="text-xs font-bold font-mono text-slate-200">#000000</span>
+                            </div>
+                            <div id="bgSamplePantone" class="text-[9px] text-slate-400 font-mono mt-0.5 truncate max-w-[100px]">PANTONE --</div>
+                        </div>
+                    </div>
+
+                    <p id="autoReasonText" class="mt-2 text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
+                        Evaluating contrast...
+                    </p>
+                </div>
+
+                <!-- Variant Cards -->
+                <div class="space-y-2 border-b border-slate-800/80 pb-4 flex-1">
+                    <div class="text-[11px] font-semibold text-slate-300">Variant Scores</div>
+
+                    <div id="cardPrimary" class="p-2 rounded-xl border border-slate-800 bg-slate-900/80 flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Primary Color</span>
+                        <span id="badgePrimary" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</span>
+                    </div>
+
+                    <div id="cardBlack" class="p-2 rounded-xl border border-slate-800 bg-slate-900/80 flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Mono Black</span>
+                        <span id="badgeBlack" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</span>
+                    </div>
+
+                    <div id="cardWhite" class="p-2 rounded-xl border border-slate-800 bg-slate-900/80 flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Mono White</span>
+                        <span id="badgeWhite" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">--</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div id="batchStudioView" class="w-full h-full flex flex-col p-4 lg:p-6 bg-slate-950 overflow-y-auto custom-scrollbar hidden">
+            
+            <!-- Batch Header Action Bar -->
+            <div class="mb-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 lg:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-indigo-400"></i>
+                        Batch Image Processing Queue
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5 max-w-lg">
+                        Process multiple mockups simultaneously. Apply global logo placements or gradient overlays to all images in the queue.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <!-- Tab 2 Multi-Capture Camera Feature -->
+                    <button onclick="openCameraModal('multi')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-purple-600/20 flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-camera-rotate"></i>
+                        <span>Multi-Camera</span>
+                    </button>
+
+                    <!-- Import Files -->
+                    <label for="batchInput" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Import Images</span>
+                        <input type="file" id="batchInput" accept="image/*" multiple class="hidden" />
+                    </label>
+
+                    <button onclick="clearBatchQueue()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition border border-slate-700">
+                        Clear Queue
+                    </button>
+                    
+                    <button onclick="exportAllBatchItems()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition shadow-lg shadow-emerald-600/20 flex items-center gap-2 w-full sm:w-auto justify-center mt-2 sm:mt-0">
+                        <i class="fa-solid fa-file-export"></i> Batch Export All
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-6 grid grid-cols-1 xl:grid-cols-2 gap-4">
+                
+                <!-- FEATURE 2: Batch Logo Apply To All Snap Locations -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-to-dot"></i> Apply Location Globally
+                        </span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline">Snaps logo across all images</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-7 gap-1.5 pt-1">
+                        <button onclick="batchApplyLogoPosition('top-left')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-up-left text-indigo-400"></i> Top Left
+                        </button>
+                        <button onclick="batchApplyLogoPosition('top-right')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-up-right text-indigo-400"></i> Top Right
+                        </button>
+                        <button onclick="batchApplyLogoPosition('center-left')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-left text-indigo-400"></i> Cntr Left
+                        </button>
+                        <button onclick="batchApplyLogoPosition('center')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-crosshairs text-indigo-400"></i> Center
+                        </button>
+                        <button onclick="batchApplyLogoPosition('center-right')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-right text-indigo-400"></i> Cntr Right
+                        </button>
+                        <button onclick="batchApplyLogoPosition('bottom-left')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-down-left text-indigo-400"></i> Btm Left
+                        </button>
+                        <button onclick="batchApplyLogoPosition('bottom-right')" class="p-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 hover:bg-indigo-950/40 text-[10px] sm:text-[11px] text-slate-200 rounded-xl font-medium transition flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fa-solid fa-arrow-down-right text-indigo-400"></i> Btm Right
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FEATURE 3: Batch Gradient & Tint Adjustment Panel -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> Global Background Adjustments
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <!-- Batch Gradient Toggle Controls -->
+                        <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-square-half-stroke text-indigo-400"></i> Batch Gradient
+                                </span>
+                                <input type="checkbox" id="batchGradientToggle" onchange="applyBatchOverlays()" class="rounded bg-slate-800 text-indigo-500 cursor-pointer">
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="batchGradientDirection" onchange="applyBatchOverlays()" class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] text-slate-300 p-1">
+                                    <option value="top-to-bottom">Top-to-Bottom</option>
+                                    <option value="bottom-to-top">Bottom-to-Top</option>
+                                    <option value="radial-center">Radial Center</option>
+                                </select>
+                                <input type="color" id="batchGradientColor" value="#000000" onchange="applyBatchOverlays()" class="w-7 h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                            </div>
+                        </div>
+
+                        <!-- Batch Tint Toggle Controls -->
+                        <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-brush text-purple-400"></i> Batch Tint Color
+                                </span>
+                                <input type="checkbox" id="batchTintToggle" onchange="applyBatchOverlays()" class="rounded bg-slate-800 text-purple-500 cursor-pointer">
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="batchTintColor" value="#0f172a" onchange="applyBatchOverlays()" class="w-full h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                                <input type="range" id="batchTintOpacity" min="10" max="80" value="30" oninput="applyBatchOverlays()" class="w-full accent-purple-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drag and Drop Batch Zone Banner -->
+            <div id="batchDropZone" class="group border-2 border-dashed border-slate-800 hover:border-indigo-500/80 bg-slate-900/40 hover:bg-indigo-950/20 rounded-2xl p-6 mb-6 text-center transition cursor-pointer relative">
+                <i class="fa-solid fa-cloud-arrow-up text-2xl text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
+                <h3 class="text-xs font-bold text-slate-200">Drag & Drop Multiple Images Here</h3>
+                <p class="text-[11px] text-slate-400">Add marketing images to automatically evaluate logo legibility across backgrounds.</p>
+                <input type="file" id="batchZoneInput" accept="image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer" />
+            </div>
+
+            <!-- FEATURE 1: Fixed Batch Grid UI -->
+            <div id="batchGridContainer" class="batch-grid">
+                <!-- Batch cards are dynamically injected here via JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <div id="cameraModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex-col items-center justify-center p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 id="cameraModalTitle" class="text-sm font-bold text-white">Camera Capture Studio</h3>
+                        <p id="cameraModalSubtitle" class="text-[11px] text-slate-400">Live stream camera preview</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="switchCamBtn" onclick="toggleCameraFacing()" title="Flip Camera Front/Back" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center gap-1.5 border border-slate-700">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="hidden sm:inline">Flip Cam</span>
+                    </button>
+                    <button onclick="closeCameraModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-950 flex flex-col items-center justify-center relative min-h-[300px]">
+                <video id="cameraVideo" autoplay playsinline muted class="w-full max-h-[50vh] object-contain rounded-2xl border border-slate-800 bg-black"></video>
+                <canvas id="cameraCanvas" class="hidden"></canvas>
+                
+                <input type="file" id="nativeCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleNativeCameraFile(event)">
+                
+                <div id="cameraError" class="hidden absolute inset-4 bg-slate-900/95 border border-amber-500/30 rounded-2xl flex flex-col items-center justify-center text-center p-6 text-amber-300 z-10 backdrop-blur-md">
+                    <i class="fa-solid fa-video-slash text-3xl mb-2 text-amber-400"></i>
+                    <p class="text-xs font-bold mb-1">Live Camera Stream Unavailable</p>
+                    <p id="cameraErrMsg" class="text-[11px] text-slate-400 max-w-sm mb-4">Live streaming is restricted in this browser frame. Use native device camera or test snapshot.</p>
+                    
+                    <div class="flex flex-wrap items-center justify-center gap-2">
+                        <button onclick="triggerNativeCamera()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Open Device Camera App</span>
+                        </button>
+                        <button onclick="takeSimulatedCameraSnap()" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg">
+                            <i class="fa-solid fa-camera-retro"></i>
+                            <span>Generate Simulated Shot</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="multiCaptureGallery" class="p-3 bg-slate-900 border-t border-slate-800 hidden flex-col gap-2">
+                <div class="flex items-center justify-between text-xs text-slate-300">
+                    <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-images text-indigo-400"></i> Captured Photos Queue</span>
+                    <span id="capturedCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">0 Photos Captured</span>
+                </div>
+                <div id="capturedThumbnails" class="flex items-center gap-2 overflow-x-auto py-1 custom-scrollbar min-h-[60px]">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+                <button onclick="closeCameraModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold">
+                    Cancel
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <button id="snapPhotoBtn" onclick="takeCameraSnap()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-dot text-rose-400 animate-pulse"></i>
+                        <span id="snapBtnText">Capture Snapshot</span>
+                    </button>
+
+                    <button id="batchDoneCamBtn" onclick="finishMultiCaptureBatch()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition shadow-lg shadow-emerald-600/30 hidden flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Add All To Queue</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-2.5 rounded-xl bg-slate-800 text-slate-100 border border-slate-700 shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Action completed</span>
+    </div>
+
+    <script>
+        const PANTONE_DATABASE = [
+            { code: "PANTONE 286 C", name: "Royal WSI Blue", hex: "#1E4488", r: 30, g: 68, b: 136 },
+            { code: "PANTONE 185 C", name: "Bright WSI Red", hex: "#E22B2B", r: 226, g: 43, b: 43 },
+            { code: "PANTONE Black C", name: "Rich Black", hex: "#111827", r: 17, g: 24, b: 39 },
+            { code: "PANTONE White", name: "Bright White", hex: "#FFFFFF", r: 255, g: 255, b: 255 }
+        ];
+
+        // Global State Store
+        const state = {
+            currentView: 'live',
+            bgImage: null,
+            primaryLogo: null,
+            blackLogo: null,
+            whiteLogo: null,
+            
+            // Transform Properties
+            logoX: 0,
+            logoY: 0,
+            scale: 0.5,
+            rotation: 0,
+            dropShadow: false,
+            
+            // Enhancements
+            gradientEnabled: false,
+            gradientDirection: 'top-to-bottom',
+            gradientIntensity: 60,
+            gradientStartColor: '#000000',
+            gradientEndColor: '#000000',
+
+            tintEnabled: false,
+            tintColor: '#0f172a',
+            tintOpacity: 30,
+
+            // Variant selection mode
+            selectedVariant: 'auto',
+            resolvedVariant: 'primary',
+            autoReason: '',
+
+            // Color data
+            contrastScores: { primary: 1, black: 1, white: 1 },
+
+            // Batch Items Queue
+            batchItems: [],
+            activeBatchId: null,
+
+            // Camera state
+            cameraStream: null,
+            cameraMode: 'single',
+            facingMode: 'environment',
+            capturedPhotosList: []
+        };
+
+        const canvas = document.getElementById('studioCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const boundingBox = document.getElementById('logoBoundingBox');
+        const container = document.getElementById('canvasContainer');
+
+        window.onload = function() {
+            loadPresetBackground('multi');
+            loadWsiLogos();
+            setupEventListeners();
+            setupDragAndDrop();
+        };
+
+        function switchViewMode(view) {
+            state.currentView = view;
+            const liveView = document.getElementById('liveStudioView');
+            const batchView = document.getElementById('batchStudioView');
+            const liveBtn = document.getElementById('tabLiveStudioBtn');
+            const batchBtn = document.getElementById('tabBatchStudioBtn');
+
+            if (view === 'live') {
+                liveView.classList.remove('hidden');
+                batchView.classList.add('hidden');
+                liveBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 whitespace-nowrap';
+                batchBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap';
+                renderCanvas();
+            } else {
+                liveView.classList.add('hidden');
+                batchView.classList.remove('hidden');
+                batchBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 whitespace-nowrap';
+                liveBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap';
+                renderBatchGrid();
+            }
+        }
+
+        // Feature 4 Implementation: Exit Studio Mode correctly handling auto-saving back to queue
+        function exitStudioMode() {
+            saveActiveBatchItem();
+            state.activeBatchId = null;
+            document.getElementById('editingItemLabel').innerText = "Active Image Workspace";
+            switchViewMode('batch');
+        }
+
+        function cancelStudioChanges() {
+            resetLogoPosition();
+            showToast('Reverted logo position');
+            saveActiveBatchItem();
+        }
+
+        // Feature 5 Implementation: Saving edits in Live view immediately affects thumbnail state
+        function saveActiveBatchItem() {
+            if (!state.activeBatchId) return;
+            const item = state.batchItems.find(b => b.id === state.activeBatchId);
+            if (item) {
+                item.logoX = state.logoX;
+                item.logoY = state.logoY;
+                item.scale = state.scale;
+                item.rotation = state.rotation;
+                item.selectedVariant = state.selectedVariant;
+                item.resolvedVariant = state.resolvedVariant;
+                item.gradientEnabled = state.gradientEnabled;
+                item.gradientDirection = state.gradientDirection;
+                item.gradientStartColor = state.gradientStartColor;
+                item.gradientEndColor = state.gradientEndColor;
+                item.gradientIntensity = state.gradientIntensity;
+                item.tintEnabled = state.tintEnabled;
+                item.tintColor = state.tintColor;
+                item.tintOpacity = state.tintOpacity;
+                
+                const badge = document.getElementById('autoSaveBadge');
+                if(badge) {
+                    badge.classList.remove('opacity-50');
+                    setTimeout(() => badge.classList.add('opacity-50'), 600);
+                }
+            }
+        }
+
+        // Feature 2 Implementation: Selection variant enforcing
+        function setVariantMode(mode) {
+            state.selectedVariant = mode;
+            
+            // Visual Update
+            document.querySelectorAll('.variant-btn').forEach(btn => {
+                btn.classList.remove('border-indigo-500', 'bg-indigo-500/10');
+                btn.classList.add('border-slate-800', 'bg-slate-900/60');
+                const check = btn.querySelector('.variant-check');
+                if(check) {
+                    check.classList.remove('text-indigo-400');
+                    check.classList.add('text-transparent');
+                }
+            });
+
+            const activeId = mode === 'auto' ? 'variantAuto' : mode === 'primary' ? 'variantPrimary' : mode === 'black' ? 'variantBlack' : 'variantWhite';
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-800', 'bg-slate-900/60');
+                activeBtn.classList.add('border-indigo-500', 'bg-indigo-500/10');
+                const check = activeBtn.querySelector('.variant-check');
+                if(check) {
+                    check.classList.remove('text-transparent');
+                    check.classList.add('text-indigo-400');
+                }
+            }
+
+            renderCanvas();
+            saveActiveBatchItem();
+        }
+
+        function loadPresetBackground(presetType) {
+            const bgCanvas = document.createElement('canvas');
+            bgCanvas.width = 1200;
+            bgCanvas.height = 800;
+            const bCtx = bgCanvas.getContext('2d');
+
+            if (presetType === 'multi') {
+                bCtx.fillStyle = '#F1F5F9'; bCtx.fillRect(0, 0, 600, 400);
+                bCtx.fillStyle = '#0F172A'; bCtx.fillRect(600, 0, 600, 400);
+                bCtx.fillStyle = '#C8102E'; bCtx.fillRect(0, 400, 600, 400);
+                bCtx.fillStyle = '#0D9488'; bCtx.fillRect(600, 400, 600, 400);
+            } else if (presetType === 'busy') {
+                for(let x=0; x<1200; x+=60) {
+                    for(let y=0; y<800; y+=60) {
+                        bCtx.fillStyle = `hsl(${(x+y)%360}, 70%, 50%)`;
+                        bCtx.fillRect(x, y, 60, 60);
+                    }
+                }
+            } else if (presetType === 'gradient') {
+                const grad = bCtx.createLinearGradient(0, 0, 1200, 800);
+                grad.addColorStop(0, '#312e81');
+                grad.addColorStop(0.5, '#ea580c');
+                grad.addColorStop(1, '#facc15');
+                bCtx.fillStyle = grad;
+                bCtx.fillRect(0, 0, 1200, 800);
+            }
+
+            const img = new Image();
+            img.onload = () => {
+                state.bgImage = img;
+                resetLogoPosition();
+                renderCanvas();
+            };
+            img.src = bgCanvas.toDataURL();
+        }
+
+        function loadWsiLogos() { generateFallbackVectorLogos(); }
+
+        function generateFallbackVectorLogos() {
+            const pCanvas = document.createElement('canvas');
+            pCanvas.width = 600; 
+            pCanvas.height = 330;
+            const pCtx = pCanvas.getContext('2d');
+            
+            pCtx.fillStyle = '#1E4488';
+            pCtx.font = '700 36px Inter, Arial, sans-serif';
+            pCtx.textAlign = 'center';
+            pCtx.fillText('Value-Added Distributor', pCanvas.width / 2, 52);
+
+            pCtx.font = '900 180px Inter, Arial, sans-serif';
+            pCtx.textAlign = 'left';
+
+            const wWidth = pCtx.measureText('W').width;
+            const sWidth = pCtx.measureText('S').width;
+            const iWidth = pCtx.measureText('I').width;
+            
+            const overlap = 20;
+            const totalWidth = wWidth + sWidth + iWidth - (overlap * 2);
+            const startX = (pCanvas.width - totalWidth) / 2;
+
+            const xW = startX;
+            const xS = xW + wWidth - overlap;
+            const xI = xS + sWidth - overlap;
+            const yBaseline = 232;
+
+            pCtx.fillStyle = '#1E4488';
+            pCtx.fillText('W', xW, yBaseline);
+            pCtx.fillText('I', xI, yBaseline);
+
+            pCtx.fillStyle = '#E22B2B';
+            pCtx.fillText('S', xS, yBaseline);
+
+            pCtx.fillStyle = '#1E4488';
+            pCtx.font = '700 40px Inter, Arial, sans-serif';
+            pCtx.textAlign = 'center';
+            pCtx.fillText('Wordtext Systems, Inc', pCanvas.width / 2, 290);
+
+            const pImg = new Image();
+            pImg.onload = () => {
+                state.primaryLogo = pImg;
+                generateMonochromeFromPrimary();
+                renderCanvas();
+            };
+            pImg.src = pCanvas.toDataURL();
+        }
+
+        function generateMonochromeFromPrimary() {
+            if (!state.primaryLogo) return;
+
+            const canvasB = document.createElement('canvas');
+            canvasB.width = state.primaryLogo.width; canvasB.height = state.primaryLogo.height;
+            const ctxB = canvasB.getContext('2d');
+            ctxB.drawImage(state.primaryLogo, 0, 0);
+            ctxB.globalCompositeOperation = 'source-in'; ctxB.fillStyle = '#000000'; ctxB.fillRect(0, 0, canvasB.width, canvasB.height);
+
+            const imgB = new Image();
+            imgB.onload = () => { state.blackLogo = imgB; renderCanvas(); };
+            imgB.src = canvasB.toDataURL();
+
+            const canvasW = document.createElement('canvas');
+            canvasW.width = state.primaryLogo.width; canvasW.height = state.primaryLogo.height;
+            const ctxW = canvasW.getContext('2d');
+            ctxW.drawImage(state.primaryLogo, 0, 0);
+            ctxW.globalCompositeOperation = 'source-in'; ctxW.fillStyle = '#FFFFFF'; ctxW.fillRect(0, 0, canvasW.width, canvasW.height);
+
+            const imgW = new Image();
+            imgW.onload = () => { state.whiteLogo = imgW; renderCanvas(); };
+            imgW.src = canvasW.toDataURL();
+        }
+
+        function renderCanvas() {
+            if (!state.bgImage || state.currentView !== 'live') return;
+
+            canvas.width = state.bgImage.width;
+            canvas.height = state.bgImage.height;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(state.bgImage, 0, 0);
+
+            if (state.tintEnabled) {
+                ctx.save();
+                ctx.fillStyle = state.tintColor;
+                ctx.globalAlpha = state.tintOpacity / 100;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
+
+            if (state.gradientEnabled) {
+                ctx.save();
+                let grad;
+                const alpha = state.gradientIntensity / 100;
+
+                if (state.gradientDirection === 'top-to-bottom') { grad = ctx.createLinearGradient(0, 0, 0, canvas.height); }
+                else if (state.gradientDirection === 'bottom-to-top') { grad = ctx.createLinearGradient(0, canvas.height, 0, 0); }
+                else if (state.gradientDirection === 'left-to-right') { grad = ctx.createLinearGradient(0, 0, canvas.width, 0); }
+                else if (state.gradientDirection === 'right-to-left') { grad = ctx.createLinearGradient(canvas.width, 0, 0, 0); }
+                else if (state.gradientDirection === 'radial-center') { grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width/1.5); }
+                else { grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width/1.8, canvas.width/2, canvas.height/2, 10); }
+
+                grad.addColorStop(0, hexToRgba(state.gradientStartColor, alpha));
+                grad.addColorStop(1, hexToRgba(state.gradientEndColor, 0));
+
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
+
+            analyzeContextualContrast();
+
+            let activeLogo = state.primaryLogo;
+            if (state.resolvedVariant === 'black' && state.blackLogo) activeLogo = state.blackLogo;
+            if (state.resolvedVariant === 'white' && state.whiteLogo) activeLogo = state.whiteLogo;
+
+            if (activeLogo) {
+                ctx.save();
+                ctx.translate(state.logoX, state.logoY);
+                ctx.rotate((state.rotation * Math.PI) / 180);
+
+                const logoW = activeLogo.width * state.scale;
+                const logoH = activeLogo.height * state.scale;
+
+                if (state.dropShadow) {
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                    ctx.shadowBlur = 18 * state.scale;
+                    ctx.shadowOffsetX = 4 * state.scale;
+                    ctx.shadowOffsetY = 6 * state.scale;
+                }
+
+                ctx.drawImage(activeLogo, -logoW / 2, -logoH / 2, logoW, logoH);
+                ctx.restore();
+            }
+        }
+
+        function hexToRgba(hex, alpha) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x+x).join('');
+            const num = parseInt(c, 16);
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+        }
+
+        function getLuminance(r, g, b) {
+            let [rs, gs, bs] = [r, g, b].map(c => {
+                c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+
+        function calculateContrastRatio(lum1, lum2) {
+            const l1 = Math.max(lum1, lum2);
+            const l2 = Math.min(lum1, lum2);
+            return ((l1 + 0.05) / (l2 + 0.05)).toFixed(2);
+        }
+
+        function analyzeContextualContrast() {
+            if (!state.bgImage || !state.primaryLogo) return;
+
+            const logoW = state.primaryLogo.width * state.scale;
+            const logoH = state.primaryLogo.height * state.scale;
+
+            const sampleX = Math.max(0, Math.floor(state.logoX - logoW / 2));
+            const sampleY = Math.max(0, Math.floor(state.logoY - logoH / 2));
+            const sampleW = Math.min(canvas.width - sampleX, Math.floor(logoW));
+            const sampleH = Math.min(canvas.height - sampleY, Math.floor(logoH));
+
+            if (sampleW <= 0 || sampleH <= 0) return;
+
+            const bgData = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
+            let totalR = 0, totalG = 0, totalB = 0, totalLum = 0, count = 0;
+
+            for (let i = 0; i < bgData.length; i += 16) {
+                totalR += bgData[i]; totalG += bgData[i + 1]; totalB += bgData[i + 2];
+                totalLum += getLuminance(bgData[i], bgData[i + 1], bgData[i + 2]);
+                count++;
+            }
+            if (count === 0) return;
+
+            const bgLum = totalLum / count;
+            const ratioPrimary = parseFloat(calculateContrastRatio(getLuminance(30, 68, 136), bgLum));
+            const ratioBlack = parseFloat(calculateContrastRatio(0, bgLum));
+            const ratioWhite = parseFloat(calculateContrastRatio(1, bgLum));
+
+            state.contrastScores = { primary: ratioPrimary, black: ratioBlack, white: ratioWhite };
+
+            if (state.selectedVariant === 'auto') {
+                if (bgLum > 0.3) {
+                    state.resolvedVariant = ratioPrimary >= 3.0 ? 'primary' : 'black';
+                } else {
+                    state.resolvedVariant = ratioPrimary >= 4.5 ? 'primary' : 'white';
+                }
+                state.autoReason = `Auto-selected ${state.resolvedVariant.toUpperCase()} based on background luminance (${bgLum.toFixed(2)}).`;
+            } else {
+                state.resolvedVariant = state.selectedVariant;
+                state.autoReason = `Manual override: Forced ${state.selectedVariant.toUpperCase()} mode.`;
+            }
+            
+            // Sync resolved variant to batch queue instantly so thumbnails are accurate
+            if (state.activeBatchId) {
+                const item = state.batchItems.find(b => b.id === state.activeBatchId);
+                if (item) { item.resolvedVariant = state.resolvedVariant; }
+            }
+
+            updateContrastAnalyticsUI();
+        }
+
+        function updateContrastAnalyticsUI() {
+            const activeRatio = state.contrastScores[state.resolvedVariant] || 1.0;
+            document.getElementById('activeContrastRatio').innerText = `${activeRatio.toFixed(1)} : 1`;
+            document.getElementById('autoReasonText').innerText = state.autoReason;
+
+            document.getElementById('badgePrimary').innerText = `${state.contrastScores.primary.toFixed(1)} : 1`;
+            document.getElementById('badgeBlack').innerText = `${state.contrastScores.black.toFixed(1)} : 1`;
+            document.getElementById('badgeWhite').innerText = `${state.contrastScores.white.toFixed(1)} : 1`;
+        }
+
+        function batchApplyLogoPosition(pos) {
+            if (state.batchItems.length === 0) {
+                showToast('Batch queue is empty.');
+                return;
+            }
+
+            state.batchItems.forEach(item => {
+                const w = item.bgImage.width;
+                const h = item.bgImage.height;
+
+                switch (pos) {
+                    case 'top-left': item.logoX = w * 0.18; item.logoY = h * 0.18; break;
+                    case 'top-right': item.logoX = w * 0.82; item.logoY = h * 0.18; break;
+                    case 'center-left': item.logoX = w * 0.18; item.logoY = h * 0.50; break;
+                    case 'center': item.logoX = w * 0.50; item.logoY = h * 0.50; break;
+                    case 'center-right': item.logoX = w * 0.82; item.logoY = h * 0.50; break;
+                    case 'bottom-left': item.logoX = w * 0.18; item.logoY = h * 0.82; break;
+                    case 'bottom-right': item.logoX = w * 0.82; item.logoY = h * 0.82; break;
+                }
+            });
+
+            renderBatchGrid();
+            showToast(`Applied "${pos.toUpperCase()}" position globally!`);
+        }
+
+        function applyBatchOverlays() {
+            const gradEnabled = document.getElementById('batchGradientToggle').checked;
+            const gradDirection = document.getElementById('batchGradientDirection').value;
+            const gradColor = document.getElementById('batchGradientColor').value;
+
+            const tintEnabled = document.getElementById('batchTintToggle').checked;
+            const tintColor = document.getElementById('batchTintColor').value;
+            const tintOpacity = parseInt(document.getElementById('batchTintOpacity').value, 10);
+
+            state.batchItems.forEach(item => {
+                item.gradientEnabled = gradEnabled;
+                item.gradientDirection = gradDirection;
+                item.gradientStartColor = gradColor;
+                
+                item.tintEnabled = tintEnabled;
+                item.tintColor = tintColor;
+                item.tintOpacity = tintOpacity;
+            });
+
+            renderBatchGrid();
+            showToast('Applied global adjustments to all queue items.');
+        }
+
+        function renderBatchGrid() {
+            const container = document.getElementById('batchGridContainer');
+            document.getElementById('batchQueueBadge').innerText = state.batchItems.length;
+
+            if (state.batchItems.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-slate-500 bg-slate-900/30 border border-dashed border-slate-800 rounded-3xl">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-sm font-bold text-slate-300">Batch Queue is Empty</p>
+                        <p class="text-xs text-slate-500 mt-1">Import multiple images or use the Multi-Camera Capture feature above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = state.batchItems.map(item => {
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = item.bgImage.width;
+                thumbCanvas.height = item.bgImage.height;
+                const tCtx = thumbCanvas.getContext('2d');
+
+                tCtx.drawImage(item.bgImage, 0, 0);
+
+                if (item.tintEnabled) {
+                    tCtx.save();
+                    tCtx.fillStyle = item.tintColor || '#0f172a';
+                    tCtx.globalAlpha = (item.tintOpacity || 30) / 100;
+                    tCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+                    tCtx.restore();
+                }
+
+                if (item.gradientEnabled) {
+                    tCtx.save();
+                    let grad = tCtx.createLinearGradient(0, 0, 0, thumbCanvas.height);
+                    grad.addColorStop(0, hexToRgba(item.gradientStartColor || '#000000', 0.6));
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    tCtx.fillStyle = grad;
+                    tCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+                    tCtx.restore();
+                }
+
+                const activeLogo = (item.resolvedVariant === 'black' ? state.blackLogo : (item.resolvedVariant === 'white' ? state.whiteLogo : state.primaryLogo));
+                if (activeLogo) {
+                    tCtx.save();
+                    tCtx.translate(item.logoX, item.logoY);
+                    tCtx.rotate((item.rotation * Math.PI) / 180);
+                    const lw = activeLogo.width * item.scale;
+                    const lh = activeLogo.height * item.scale;
+                    tCtx.drawImage(activeLogo, -lw / 2, -lh / 2, lw, lh);
+                    tCtx.restore();
+                }
+
+                const thumbUrl = thumbCanvas.toDataURL();
+                return `
+                    <div class="batch-card bg-slate-900 border border-slate-800 hover:border-indigo-500/70 rounded-2xl overflow-hidden shadow-xl flex flex-col transition-all duration-300 group hover:-translate-y-1">
+                        <div class="relative w-full bg-slate-950 cursor-pointer overflow-hidden flex items-center justify-center min-h-[150px]" onclick="editBatchPlacement('${item.id}')">
+                            <img src="${thumbUrl}" class="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-300" alt="${item.name}" />
+                            
+                            <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+                                <span class="bg-slate-950/80 backdrop-blur-md text-[10px] font-bold font-mono text-indigo-300 px-2.5 py-0.5 rounded-full border border-slate-700/80 shadow-md">
+                                    ${(item.resolvedVariant || 'auto').toUpperCase()}
+                                </span>
+                                ${item.gradientEnabled ? '<span class="bg-purple-950/80 backdrop-blur-md text-[10px] font-bold text-purple-300 px-2 py-0.5 rounded-full border border-purple-700/80 shadow-md">EFFECTS</span>' : ''}
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 flex items-center justify-between border-t border-slate-800/80 bg-slate-900/90">
+                            <div class="truncate max-w-[140px] sm:max-w-[160px]">
+                                <div class="text-xs font-bold text-slate-200 truncate">${item.name}</div>
+                                <div class="text-[10px] text-slate-400">Click image to edit</div>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button onclick="editBatchPlacement('${item.id}')" title="Edit in Live Studio" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition flex items-center justify-center text-xs border border-slate-700">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </button>
+                                <button onclick="removeBatchItem('${item.id}')" title="Delete" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition flex items-center justify-center text-xs border border-slate-700">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function editBatchPlacement(id) {
+            const item = state.batchItems.find(b => b.id === id);
+            if (!item) return;
+
+            state.activeBatchId = item.id;
+            document.getElementById('editingItemLabel').innerText = `Editing: ${item.name}`;
+            
+            // Re-hydrate state from batch item
+            state.bgImage = item.bgImage;
+            state.logoX = item.logoX;
+            state.logoY = item.logoY;
+            state.scale = item.scale;
+            state.rotation = item.rotation;
+            
+            state.gradientEnabled = !!item.gradientEnabled;
+            state.gradientDirection = item.gradientDirection || 'top-to-bottom';
+            state.gradientStartColor = item.gradientStartColor || '#000000';
+            state.gradientEndColor = item.gradientEndColor || '#000000';
+            state.gradientIntensity = item.gradientIntensity || 60;
+            
+            document.getElementById('gradientToggle').checked = state.gradientEnabled;
+            document.getElementById('gradientControls').classList.toggle('hidden', !state.gradientEnabled);
+            document.getElementById('gradientDirection').value = state.gradientDirection;
+            document.getElementById('gradientStartColor').value = state.gradientStartColor;
+            document.getElementById('gradientEndColor').value = state.gradientEndColor;
+            document.getElementById('gradientIntensity').value = state.gradientIntensity;
+            document.getElementById('gradientIntensityVal').innerText = `${state.gradientIntensity}%`;
+
+            state.tintEnabled = !!item.tintEnabled;
+            state.tintColor = item.tintColor || '#0f172a';
+            state.tintOpacity = item.tintOpacity || 30;
+            
+            document.getElementById('tintToggle').checked = state.tintEnabled;
+            document.getElementById('tintControls').classList.toggle('hidden', !state.tintEnabled);
+            document.getElementById('tintColor').value = state.tintColor;
+            document.getElementById('tintOpacity').value = state.tintOpacity;
+            document.getElementById('tintOpacityVal').innerText = `${state.tintOpacity}%`;
+
+            document.getElementById('scaleSlider').value = Math.round(state.scale * 100);
+            document.getElementById('scaleValue').innerText = `${Math.round(state.scale * 100)}%`;
+            document.getElementById('rotateSlider').value = state.rotation;
+            document.getElementById('rotateValue').innerText = `${state.rotation}°`;
+
+            setVariantMode(item.selectedVariant || 'auto'); // Sets mode and renders
+
+            switchViewMode('live');
+            showToast(`Editing "${item.name}" in Live Studio`);
+        }
+
+        function removeBatchItem(id) {
+            state.batchItems = state.batchItems.filter(b => b.id !== id);
+            renderBatchGrid();
+            showToast('Item removed from queue');
+        }
+
+        function clearBatchQueue() {
+            state.batchItems = [];
+            renderBatchGrid();
+            showToast('Batch queue cleared');
+        }
+
+        function resetLogoPosition() {
+            if (!state.bgImage) return;
+            state.logoX = state.bgImage.width / 2;
+            state.logoY = state.bgImage.height / 2;
+            state.scale = 0.5;
+            state.rotation = 0;
+            document.getElementById('scaleSlider').value = 50;
+            document.getElementById('rotateSlider').value = 0;
+            renderCanvas();
+            saveActiveBatchItem();
+        }
+
+        function snapLogo(pos) {
+            if (!state.bgImage) return;
+            const w = state.bgImage.width;
+            const h = state.bgImage.height;
+
+            switch (pos) {
+                case 'top-left': state.logoX = w * 0.18; state.logoY = h * 0.18; break;
+                case 'top-center': state.logoX = w * 0.50; state.logoY = h * 0.18; break;
+                case 'top-right': state.logoX = w * 0.82; state.logoY = h * 0.18; break;
+                case 'center-left': state.logoX = w * 0.18; state.logoY = h * 0.50; break;
+                case 'center': state.logoX = w * 0.50; state.logoY = h * 0.50; break;
+                case 'center-right': state.logoX = w * 0.82; state.logoY = h * 0.50; break;
+                case 'bottom-left': state.logoX = w * 0.18; state.logoY = h * 0.82; break;
+                case 'bottom-center': state.logoX = w * 0.50; state.logoY = h * 0.82; break;
+                case 'bottom-right': state.logoX = w * 0.82; state.logoY = h * 0.82; break;
+            }
+            renderCanvas();
+            saveActiveBatchItem();
+        }
+
+        function setupEventListeners() {
+            let isDragging = false;
+            let startX = 0, startY = 0, initX = 0, initY = 0;
+
+            // Mouse Drag Support
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX; startY = e.clientY;
+                initX = state.logoX; initY = state.logoY;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+                state.logoX = initX + (e.clientX - startX) * scaleX;
+                state.logoY = initY + (e.clientY - startY) * scaleY;
+                renderCanvas();
+            });
+            window.addEventListener('mouseup', () => { 
+                if (isDragging) { isDragging = false; saveActiveBatchItem(); }
+            });
+
+            // Feature 1: Touch Drag Support for Mobile devices
+            container.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                    initX = state.logoX; initY = state.logoY;
+                }
+            }, {passive: false});
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); // Stop mobile screen scrolling
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+                state.logoX = initX + (e.touches[0].clientX - startX) * scaleX;
+                state.logoY = initY + (e.touches[0].clientY - startY) * scaleY;
+                renderCanvas();
+            }, {passive: false});
+
+            container.addEventListener('touchend', () => { 
+                if (isDragging) { isDragging = false; saveActiveBatchItem(); }
+            });
+
+            // Feature 3: Mouse Wheel Zoom Support inside the Canvas Wrapper
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault(); // Stop page scrolling
+                const zoomSensitivity = 0.001;
+                let newScale = state.scale - e.deltaY * zoomSensitivity;
+                newScale = Math.max(0.15, Math.min(newScale, 2.0)); // Limits zoom 15% - 200%
+                state.scale = newScale;
+                document.getElementById('scaleSlider').value = Math.round(newScale * 100);
+                document.getElementById('scaleValue').innerText = `${Math.round(newScale * 100)}%`;
+                renderCanvas();
+                saveActiveBatchItem();
+            }, { passive: false });
+
+
+            // Slider & Input bindings triggering saveActiveBatchItem
+            document.getElementById('scaleSlider').addEventListener('input', (e) => {
+                state.scale = e.target.value / 100;
+                document.getElementById('scaleValue').innerText = `${e.target.value}%`;
+                renderCanvas();
+                saveActiveBatchItem();
+            });
+
+            document.getElementById('rotateSlider').addEventListener('input', (e) => {
+                state.rotation = parseInt(e.target.value, 10);
+                document.getElementById('rotateValue').innerText = `${e.target.value}°`;
+                renderCanvas();
+                saveActiveBatchItem();
+            });
+
+            document.getElementById('gradientToggle').addEventListener('change', (e) => {
+                state.gradientEnabled = e.target.checked;
+                document.getElementById('gradientControls').classList.toggle('hidden', !state.gradientEnabled);
+                renderCanvas(); saveActiveBatchItem();
+            });
+            document.getElementById('gradientDirection').addEventListener('change', (e) => { state.gradientDirection = e.target.value; renderCanvas(); saveActiveBatchItem(); });
+            document.getElementById('gradientIntensity').addEventListener('input', (e) => {
+                state.gradientIntensity = parseInt(e.target.value, 10);
+                document.getElementById('gradientIntensityVal').innerText = `${e.target.value}%`;
+                renderCanvas(); saveActiveBatchItem();
+            });
+
+            document.getElementById('tintToggle').addEventListener('change', (e) => {
+                state.tintEnabled = e.target.checked;
+                document.getElementById('tintControls').classList.toggle('hidden', !state.tintEnabled);
+                renderCanvas(); saveActiveBatchItem();
+            });
+            document.getElementById('tintColor').addEventListener('input', (e) => { state.tintColor = e.target.value; renderCanvas(); saveActiveBatchItem(); });
+            document.getElementById('tintOpacity').addEventListener('input', (e) => {
+                state.tintOpacity = parseInt(e.target.value, 10);
+                document.getElementById('tintOpacityVal').innerText = `${e.target.value}%`;
+                renderCanvas(); saveActiveBatchItem();
+            });
+
+            // Single File Loaders
+            document.getElementById('bgInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const img = new Image();
+                        img.onload = () => { state.bgImage = img; resetLogoPosition(); };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('batchInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) addFilesToBatchQueue(Array.from(e.target.files));
+            });
+
+            document.getElementById('batchZoneInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) addFilesToBatchQueue(Array.from(e.target.files));
+            });
+        }
+
+        async function openCameraModal(mode) {
+            state.cameraMode = mode;
+            state.capturedPhotosList = [];
+            
+            const modal = document.getElementById('cameraModal');
+            const title = document.getElementById('cameraModalTitle');
+            const subtitle = document.getElementById('cameraModalSubtitle');
+            const gallery = document.getElementById('multiCaptureGallery');
+            const doneBtn = document.getElementById('batchDoneCamBtn');
+            const snapText = document.getElementById('snapBtnText');
+
+            if (mode === 'single') {
+                title.innerText = 'Live Studio Camera Snap (Tab 1)'; subtitle.innerText = 'Snap a photo to use as the background image';
+                gallery.classList.add('hidden'); doneBtn.classList.add('hidden');
+                snapText.innerText = 'Set Background Photo';
+            } else {
+                title.innerText = 'Batch Camera Multi-Capture (Tab 2)'; subtitle.innerText = 'Snap multiple photos into queue continuously';
+                gallery.classList.remove('hidden'); doneBtn.classList.remove('hidden');
+                snapText.innerText = 'Snap Photo to Batch';
+                updateCapturedGalleryUI();
+            }
+
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            document.getElementById('cameraError').classList.add('hidden');
+            await startCameraStream();
+        }
+
+        async function startCameraStream() {
+            if (state.cameraStream) { state.cameraStream.getTracks().forEach(track => track.stop()); state.cameraStream = null; }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showCameraError("Live camera restricted. Use device camera option below."); return; }
+
+            try {
+                let constraints = { video: { facingMode: { ideal: state.facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false };
+                let stream;
+                try { stream = await navigator.mediaDevices.getUserMedia(constraints); } 
+                catch (e1) { stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+
+                state.cameraStream = stream;
+                const video = document.getElementById('cameraVideo');
+                video.muted = true; video.srcObject = stream;
+                
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => { video.play().then(resolve).catch(err => resolve()); };
+                });
+                document.getElementById('cameraError').classList.add('hidden');
+            } catch (err) {
+                showCameraError("Could not access live camera stream.");
+            }
+        }
+
+        async function toggleCameraFacing() {
+            state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
+            showToast(`Switched camera mode: ${state.facingMode === 'user' ? 'Front' : 'Rear'}`);
+            await startCameraStream();
+        }
+
+        function triggerNativeCamera() { const input = document.getElementById('nativeCameraInput'); if (input) input.click(); }
+
+        function handleNativeCameraFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const dataUrl = ev.target.result;
+                if (state.cameraMode === 'single') {
+                    const img = new Image(); img.onload = () => { state.bgImage = img; resetLogoPosition(); closeCameraModal(); showToast('Photo loaded!'); }; img.src = dataUrl;
+                } else {
+                    state.capturedPhotosList.push(dataUrl); updateCapturedGalleryUI(); showToast(`Photo #${state.capturedPhotosList.length} captured!`);
+                }
+            };
+            reader.readAsDataURL(file); e.target.value = '';
+        }
+
+        function showCameraError(msg) {
+            document.getElementById('cameraErrMsg').innerText = msg;
+            document.getElementById('cameraError').classList.remove('hidden');
+        }
+
+        function takeSimulatedCameraSnap() {
+            const simCanvas = document.createElement('canvas'); simCanvas.width = 900; simCanvas.height = 1200;
+            const sCtx = simCanvas.getContext('2d');
+            const grad = sCtx.createLinearGradient(0, 0, 900, 1200);
+            grad.addColorStop(0, '#0f172a'); grad.addColorStop(0.5, '#4338ca'); grad.addColorStop(1, '#db2777');
+            sCtx.fillStyle = grad; sCtx.fillRect(0, 0, 900, 1200);
+            sCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            for(let i = 0; i < 25; i++) { sCtx.beginPath(); sCtx.arc(Math.random() * 900, Math.random() * 1200, Math.random() * 90 + 20, 0, Math.PI * 2); sCtx.fill(); }
+
+            sCtx.fillStyle = '#ffffff'; sCtx.font = 'bold 38px Inter, sans-serif'; sCtx.textAlign = 'center';
+            sCtx.fillText('Camera Capture Sample #' + (state.capturedPhotosList.length + 1), 450, 580);
+            const dataUrl = simCanvas.toDataURL('image/png');
+
+            if (state.cameraMode === 'single') {
+                const img = new Image(); img.onload = () => { state.bgImage = img; resetLogoPosition(); closeCameraModal(); }; img.src = dataUrl;
+            } else {
+                state.capturedPhotosList.push(dataUrl); updateCapturedGalleryUI();
+            }
+        }
+
+        function closeCameraModal() {
+            if (state.cameraStream) { state.cameraStream.getTracks().forEach(track => track.stop()); state.cameraStream = null; }
+            const modal = document.getElementById('cameraModal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+
+        function takeCameraSnap() {
+            const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas');
+            if (!video.videoWidth || video.paused || video.ended) { takeSimulatedCameraSnap(); return; }
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const cCtx = canvas.getContext('2d'); cCtx.drawImage(video, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            if (state.cameraMode === 'single') {
+                const img = new Image(); img.onload = () => { state.bgImage = img; resetLogoPosition(); closeCameraModal(); }; img.src = dataUrl;
+            } else {
+                state.capturedPhotosList.push(dataUrl); updateCapturedGalleryUI();
+            }
+        }
+
+        function updateCapturedGalleryUI() {
+            document.getElementById('capturedCountBadge').innerText = `${state.capturedPhotosList.length} Photos Captured`;
+            document.getElementById('capturedThumbnails').innerHTML = state.capturedPhotosList.map((url, idx) => `
+                <div class="relative w-14 h-14 rounded-lg overflow-hidden border border-indigo-500/50 flex-shrink-0 group">
+                    <img src="${url}" class="w-full h-full object-cover" />
+                    <span class="absolute bottom-0 right-0 bg-slate-950/80 text-[9px] text-indigo-300 font-mono px-1">#${idx+1}</span>
+                </div>
+            `).join('');
+        }
+
+        function finishMultiCaptureBatch() {
+            if (state.capturedPhotosList.length === 0) { showToast('No photos captured yet'); return; }
+            let loaded = 0;
+            state.capturedPhotosList.forEach((dataUrl, idx) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.batchItems.push({
+                        id: 'cam_' + Date.now() + '_' + idx, name: `Camera Capture #${idx + 1}`, bgImage: img,
+                        logoX: img.width / 2, logoY: img.height / 2, scale: 0.5, rotation: 0,
+                        selectedVariant: 'auto', resolvedVariant: 'primary',
+                        gradientEnabled: false, tintEnabled: false
+                    });
+                    loaded++;
+                    if (loaded === state.capturedPhotosList.length) { renderBatchGrid(); closeCameraModal(); showToast(`Added ${loaded} photo(s) to Batch Queue!`); }
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        function addFilesToBatchQueue(files) {
+            let loaded = 0;
+            files.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        state.batchItems.push({
+                            id: 'file_' + Date.now() + '_' + idx, name: file.name, bgImage: img,
+                            logoX: img.width / 2, logoY: img.height / 2, scale: 0.5, rotation: 0,
+                            selectedVariant: 'auto', resolvedVariant: 'primary',
+                            gradientEnabled: false, tintEnabled: false
+                        });
+                        loaded++;
+                        if (loaded === files.length) { renderBatchGrid(); showToast(`Added ${loaded} file(s) to queue`); }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setupDragAndDrop() {
+            const overlay = document.getElementById('globalDropOverlay');
+            window.addEventListener('dragover', (e) => { e.preventDefault(); overlay.classList.remove('hidden'); });
+            window.addEventListener('dragleave', (e) => { e.preventDefault(); overlay.classList.add('hidden'); });
+            window.addEventListener('drop', (e) => {
+                e.preventDefault(); overlay.classList.add('hidden');
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length > 0) addFilesToBatchQueue(files);
+            });
+        }
+
+        function exportCurrentComposite() {
+            const link = document.createElement('a'); link.download = 'brand-logo-composite.png';
+            link.href = canvas.toDataURL('image/png'); link.click(); showToast('Canvas exported successfully');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast'); document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => { toast.classList.add('opacity-0', 'pointer-events-none'); }, 2500);
+        }
+    </script>
+</body>
+</html>
